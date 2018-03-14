@@ -46,8 +46,8 @@ protected   {return TK_PR_PROTECTED;}
 "<<"        {return TK_OC_SL;}
 
 "\n"        {line_number++;}
-.           {return TOKEN_ERRO;}
-"//".*|" "*|"\t"
+
+"//".*|" "|"\t"
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);
@@ -58,4 +58,6 @@ protected   {return TK_PR_PROTECTED;}
 "*"       // eat the lone star
 \n        line_number++;
 }
+
+.           {return TOKEN_ERRO;}
 %%
