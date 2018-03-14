@@ -20,7 +20,7 @@ while       {return TK_PR_WHILE;}
 do          {return TK_PR_DO;}
 input       {return TK_PR_INPUT;}
 output      {return TK_PR_OUTPUT;}
-return      {return TK_PR_OUTPUT;}
+return      {return TK_PR_RETURN;}
 const       {return TK_PR_CONST;}
 static      {return TK_PR_STATIC;}
 foreach     {return TK_PR_FOREACH;}
