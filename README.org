@@ -1,5 +1,5 @@
 #+STARTUP: overview indent
-#+Title: (Coloque aqui o identificador do grupo, fornecido pelo professor)
+#+Title: Epsilon - Filipe Santos e Douglas Flores
 
 * Prerequisitos
 
