@@ -5,6 +5,12 @@
 #include "parser.h" //arquivo automaticamente gerado pelo bison
 int line_number = 1;
 %}
+
+DIGIT [0-9]
+LETTER [a-zA-Z]
+ALFABETIC [a-zA-Z_]
+ALFANUMERIC [a-zA-Z0-9_]
+
 %x IN_COMMENT
 %%
 
@@ -48,6 +54,15 @@ protected   {return TK_PR_PROTECTED;}
 "\n"        {line_number++;}
 
 "//".*|" "|"\t"
+
+{ALFABETIC}{ALFANUMERIC}*  {return TK_IDENTIFICADOR;}
+
+("+"|"-")?{DIGIT}+  {return TK_LIT_INT;}
+false               {return TK_LIT_FALSE}
+true                {return TK_LIT_TRUE;}
+"'"."'"             {return TK_LIT_CHAR;}
+\".\"               {return TK_LIT_STRING;}
+(("+"|"-")?{DIGIT}+)"."{DIGIT}+)(e|E)?(("+"|"-")?{DIGIT}+)?  {return TK_LIT_FLOAT;}
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);
