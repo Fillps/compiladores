@@ -3,6 +3,7 @@
 */
 %{
 #include "parser.h" //arquivo automaticamente gerado pelo bison
+#include "cc_misc.h"
 int line_number = 1;
 %}
 
@@ -40,7 +41,7 @@ private     {return TK_PR_PRIVATE;}
 public      {return TK_PR_PUBLIC;}
 protected   {return TK_PR_PROTECTED;}
 
-[,;:()\[\]{}+-/<>=!&#^.]     {return yytext[0];}
+[,;:()[\]{}+-/<>=!&%#\^\.\*]     {return yytext[0];}
 
 "<="        {return TK_OC_LE;}
 ">="        {return TK_OC_GE;}
@@ -57,14 +58,14 @@ protected   {return TK_PR_PROTECTED;}
 
 "//".*|" "|"\t"
 
-{ALFABETIC}{ALFANUMERIC}*  {return TK_IDENTIFICADOR;}
-
-("+"|"-")?{DIGIT}+  {return TK_LIT_INT;}
 false               {return TK_LIT_FALSE;}
 true                {return TK_LIT_TRUE;}
-"'".{0,1}"'"        {return TK_LIT_CHAR;}
-\"([^\"]*)\"        {return TK_LIT_STRING;}
-(("+"|"-")?{DIGIT}+)((\.{DIGIT}+)|((e|E)(("+"|"-")?{DIGIT}+))) {return TK_LIT_FLOAT;}
+
+{ALFABETIC}{ALFANUMERIC}*  {insert_symbol(); return TK_IDENTIFICADOR;}
+("+"|"-")?{DIGIT}+  {insert_symbol(); return TK_LIT_INT;}
+"'".{0,1}"'"        {insert_symbol(); return TK_LIT_CHAR;}
+\"([^\"]*)\"        {insert_symbol(); return TK_LIT_STRING;}
+(("+"|"-")?{DIGIT}+)((\.{DIGIT}+)|((e|E)(("+"|"-")?{DIGIT}+))) {insert_symbol(); return TK_LIT_FLOAT;}
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);
