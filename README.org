@@ -37,4 +37,6 @@ Coloque aqui qualquer comentário que achares pertinente.
 
 * Documentação
 
-Forneça aqui uma documentação de uso do seu compilador.
+Novos operadores
+- %|% - Ou exclusivo lógico
+- %>% - Rotate Right

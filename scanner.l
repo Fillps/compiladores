@@ -40,7 +40,7 @@ private     {return TK_PR_PRIVATE;}
 public      {return TK_PR_PUBLIC;}
 protected   {return TK_PR_PROTECTED;}
 
-[,;:()\[\]{}+-/<>=!&%#^.]     {return yytext[0];}
+[,;:()\[\]{}+-/<>=!&#^.]     {return yytext[0];}
 
 "<="        {return TK_OC_LE;}
 ">="        {return TK_OC_GE;}
@@ -50,6 +50,8 @@ protected   {return TK_PR_PROTECTED;}
 "||"        {return TK_OC_OR;}
 ">>"        {return TK_OC_SR;}
 "<<"        {return TK_OC_SL;}
+"%|%"       {return TK_OC_XOR;}
+"%>%"       {return TK_OC_RR;}
 
 "\n"        {line_number++;}
 
@@ -75,4 +77,5 @@ true                {return TK_LIT_TRUE;}
 }
 
 .           {return TOKEN_ERRO;}
+
 %%

@@ -1,5 +1,5 @@
 /*
-  Coloque aqui o identificador do grupo e dos seus membros
+  Epsilon - Douglas Flores e Filipe Santos
 */
 %code requires{
 #include "main.h"
@@ -39,6 +39,8 @@
 %token TK_OC_OR
 %token TK_OC_SL
 %token TK_OC_SR
+%token TK_OC_XOR    // token de %|%
+%token TK_OC_RR     // rotate right (%>%)
 %token TK_LIT_INT
 %token TK_LIT_FLOAT
 %token TK_LIT_FALSE
