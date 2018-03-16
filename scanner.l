@@ -62,7 +62,7 @@ protected   {return TK_PR_PROTECTED;}
 ("+"|"-")?{DIGIT}+  {return TK_LIT_INT;}
 false               {return TK_LIT_FALSE;}
 true                {return TK_LIT_TRUE;}
-"'"."'"             {return TK_LIT_CHAR;}
+"'".{0,1}"'"        {return TK_LIT_CHAR;}
 \"([^\"]*)\"        {return TK_LIT_STRING;}
 (("+"|"-")?{DIGIT}+)((\.{DIGIT}+)|((e|E)(("+"|"-")?{DIGIT}+))) {return TK_LIT_FLOAT;}
 
