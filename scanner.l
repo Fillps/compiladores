@@ -44,7 +44,7 @@ private     return TK_PR_PRIVATE;
 public      return TK_PR_PUBLIC;
 protected   return TK_PR_PROTECTED;
 
-[,;:()[\]{}+-/<>=!&%#\^\.\*]     return yytext[0];
+[,;:()\[\]{}+-/<>=!&%#\^\.\*]     return yytext[0];
 
 "<="        return TK_OC_LE;
 ">="        return TK_OC_GE;
@@ -65,7 +65,7 @@ false       return TK_LIT_FALSE;
 true        return TK_LIT_TRUE;
 
 {ALFABETIC}{ALFANUMERIC}*   {insert_symbol(); return TK_IDENTIFICADOR;}
-"'".{0,1}"'"                {insert_symbol(); return TK_LIT_CHAR;}
+\'.?\'                      {insert_symbol(); return TK_LIT_CHAR;}
 \"([^\"]*)\"                {insert_symbol(); return TK_LIT_STRING;}
 
 {INTEGER}                   {insert_symbol(); return TK_LIT_INT;}
