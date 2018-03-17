@@ -17,6 +17,7 @@ int main_avaliacao_etapa_1 (int argc, char **argv)
       continue;
     }
     switch (token){
+    case '.':
     case ',':
     case ';':
     case ':':
@@ -35,7 +36,6 @@ int main_avaliacao_etapa_1 (int argc, char **argv)
     case '=':
     case '!':
     case '&':
-    case '$':
     case '%':
     case '#':
     case '^': print_nome2 (token); break;
