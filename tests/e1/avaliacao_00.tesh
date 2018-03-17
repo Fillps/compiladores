@@ -40,7 +40,7 @@ $ ./main ./tests/e1/input/nivel0.tokens
 > 35 TK_ESPECIAL [=]
 > 36 TK_ESPECIAL [!]
 > 37 TK_ESPECIAL [&]
-> 38 TK_ESPECIAL [$]
+> 38 TK_ESPECIAL [.]
 > 39 TK_LIT_INT [-2]
 > 40 TK_LIT_FLOAT [31794.45]
 > 41 TK_LIT_CHAR ['&']
