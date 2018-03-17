@@ -66,7 +66,7 @@ true        return TK_LIT_TRUE;
 
 {ALFABETIC}{ALFANUMERIC}*   {insert_symbol(); return TK_IDENTIFICADOR;}
 \'.?\'                      {insert_symbol(); return TK_LIT_CHAR;}
-\"([^(\"|\n)]*)\"           {insert_symbol(); return TK_LIT_STRING;}
+\"([^\"\n])*\"              {insert_symbol(); return TK_LIT_STRING;}
 
 {INTEGER}                   {insert_symbol(); return TK_LIT_INT;}
 {FLOAT}                     {insert_symbol(); return TK_LIT_FLOAT;}
