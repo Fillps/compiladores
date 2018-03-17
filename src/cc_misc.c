@@ -43,16 +43,25 @@ void comp_print_table (void)
 }
 
 void insert_symbol(void){
+    if (strcmp(yytext, "\"\"")==0 || strcmp(yytext, "\'\'")==0)
+        return;
+
     char* key = (char*)malloc(yyleng*sizeof(char));
     int* line = (int*)malloc(sizeof(int));
+
     *line = line_number;
+
     if(yytext[0]=='\"' || yytext[0]=='\'') {
         strncpy(key, yytext + 1, yyleng - 2);
         key[yyleng-2] = '\0';
     }
     else
         strcpy(key, yytext);
-    dict_remove(symbol_table, key);
-    dict_put(symbol_table, key, line);
+
+    int* value = dict_put(symbol_table, key, line);
+    if(value != line){
+        *value = line_number;
+        free(line);
+    }
     free(key);
 }
