@@ -50,9 +50,17 @@
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+/* Declaração dos Não-Terminais */
+
+%start programa
+
 %%
 /* Regras (e ações) da gramática */
 
-programa:
+programa: novo_tipo;
+novo_tipo: TK_PR_CLASS TK_IDENTIFICADOR '[' campo ']' ';';
+campo: encapsulamento tipo TK_IDENTIFICADOR | encapsulamento tipo TK_IDENTIFICADOR ':' campo;
+encapsulamento: TK_PR_PRIVATE | TK_PR_PUBLIC | TK_PR_PROTECTED;
+tipo: TK_PR_FLOAT | TK_PR_INT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
 
 %%
