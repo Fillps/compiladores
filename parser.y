@@ -76,9 +76,44 @@ vetor_global: %empty | '[' TK_LIT_INT ']';
 funcao: cabecalho corpo;
 cabecalho: static_opc tipo TK_IDENTIFICADOR '(' lista ')';
 lista: parametro | parametro ',' lista;
-parametro: const_opc tipo TK_IDENTIFICADOR;
+parametro: %empty | const_opc tipo TK_IDENTIFICADOR;
 const_opc: %empty | TK_PR_CONST;
-corpo: bloco_comando;
-bloco_comando: %empty;
+
+/* Blocos de Comando*/
+corpo: '{' bloco_comando '}';
+bloco_comando: %empty | comando_simples ';' bloco_comando;
+comando_simples: var_declaracao | atribuicao; // Adicionar novos comandos aqui
+
+var_declaracao: static_opc const_opc tipo_declaracao;
+tipo_declaracao: TK_IDENTIFICADOR TK_IDENTIFICADOR | tipo TK_IDENTIFICADOR var_atribuicao; // Se a declaração permite atribuição ou não
+var_atribuicao: %empty | TK_OC_LE var_valor;
+var_valor: TK_IDENTIFICADOR | TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_CHAR | TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_STRING;
+
+atribuicao: %empty;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 %%
