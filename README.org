@@ -15,8 +15,8 @@ Este programa depende das seguintes bibliotecas
 git clone git@github.com:schnorr/pc.git
 mkdir -p pc/build
 cd pc/build
-# Ativar compilação para a Etapa 1
-cmake -DE1=ON ..
+# Ativar compilação para a Etapa 2
+cmake -DE2=ON ..
 # Compilar
 make
 # Executar
