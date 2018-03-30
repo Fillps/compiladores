@@ -66,30 +66,34 @@ encapsulamento: TK_PR_PRIVATE | TK_PR_PUBLIC | TK_PR_PROTECTED;
 tipo: TK_PR_FLOAT | TK_PR_INT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
 
 /* Variável Global */
-var_global: static_opc var_tipo TK_IDENTIFICADOR vetor_global ';';
+var_global: static_opc tipo TK_IDENTIFICADOR vetor_global ';' | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';';
 static_opc: %empty | TK_PR_STATIC;
-var_tipo: tipo | TK_IDENTIFICADOR;
 
 vetor_global: %empty | '[' TK_LIT_INT ']';
 
 /* Função */
 funcao: cabecalho corpo;
+corpo: %empty;
 cabecalho: static_opc tipo TK_IDENTIFICADOR '(' lista ')';
 lista: parametro | parametro ',' lista;
 parametro: %empty | const_opc tipo TK_IDENTIFICADOR;
 const_opc: %empty | TK_PR_CONST;
 
-/* Blocos de Comando*/
+/* Blocos de Comando */
 corpo: '{' bloco_comando '}';
 bloco_comando: %empty | comando_simples ';' bloco_comando;
-comando_simples: var_declaracao | atribuicao; // Adicionar novos comandos aqui
+comando_simples: var_declaracao_primitiva /*| atribuicao*/ | id; // Adicionar novos comandos aqui
 
-var_declaracao: static_opc const_opc tipo_declaracao;
-tipo_declaracao: TK_IDENTIFICADOR TK_IDENTIFICADOR | tipo TK_IDENTIFICADOR var_atribuicao; // Se a declaração permite atribuição ou não
+id: TK_IDENTIFICADOR chamada_funcao /* função*/| TK_IDENTIFICADOR TK_IDENTIFICADOR/* variável de tipo não-primitivo */; // Feito para evitar conflitos (provisório)
+
+var_declaracao_primitiva: static_opc const_opc tipo TK_IDENTIFICADOR var_atribuicao;
 var_atribuicao: %empty | TK_OC_LE var_valor;
 var_valor: TK_IDENTIFICADOR | TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_CHAR | TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_STRING;
 
-atribuicao: %empty;
+chamada_funcao: '(' chamada_parametros ')';
+chamada_parametros: chamada_parametro | chamada_parametro ',' chamada_parametros;
+chamada_parametro: %empty | var_valor | '.';
+
 
 
 
