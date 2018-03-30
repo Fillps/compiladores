@@ -57,7 +57,7 @@
 %%
 /* Regras (e ações) da gramática */
 
-programa: novo_tipo | var_global;
+programa: novo_tipo | var_global | funcao;
 
 /* Novo Tipo */
 novo_tipo: TK_PR_CLASS TK_IDENTIFICADOR '[' campo ']' ';';
@@ -66,36 +66,19 @@ encapsulamento: TK_PR_PRIVATE | TK_PR_PUBLIC | TK_PR_PROTECTED;
 tipo: TK_PR_FLOAT | TK_PR_INT | TK_PR_BOOL | TK_PR_CHAR | TK_PR_STRING;
 
 /* Variável Global */
-var_global: static_opt var_tipo TK_IDENTIFICADOR vetor_global ';';
-static_opt: %empty | TK_PR_STATIC;
+var_global: static_opc var_tipo TK_IDENTIFICADOR vetor_global ';';
+static_opc: %empty | TK_PR_STATIC;
 var_tipo: tipo | TK_IDENTIFICADOR;
 
-vetor_global: %empty | '[' TK_LIT_INT ']'; 
+vetor_global: %empty | '[' TK_LIT_INT ']';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* Função */
+funcao: cabecalho corpo;
+cabecalho: static_opc tipo TK_IDENTIFICADOR '(' lista ')';
+lista: parametro | parametro ',' lista;
+parametro: const_opc tipo TK_IDENTIFICADOR;
+const_opc: %empty | TK_PR_CONST;
+corpo: bloco_comando;
+bloco_comando: %empty;
 
 %%
