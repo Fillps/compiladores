@@ -56,6 +56,8 @@
 %left '^'
 %right UMINUS
 
+%left '.'
+
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -176,9 +178,12 @@ chamada_parametro:
 
 /* Atribuição */
 atribuicao:
-    TK_IDENTIFICADOR '=' exp
-    | TK_IDENTIFICADOR '[' exp ']' '=' exp
-    | TK_IDENTIFICADOR '.' TK_IDENTIFICADOR '=' exp;
+    var '=' exp;
+
+var:
+    TK_IDENTIFICADOR
+    | TK_IDENTIFICADOR '[' exp ']'
+    | var '.' var;
 
 exp:
     exp TK_OC_LE exp
@@ -194,11 +199,16 @@ exp:
     | exp '%' exp
     | exp '^' exp;
     | '(' exp ')'
+    | '+' exp %prec UMINUS
     | '-' exp %prec UMINUS
-    | TK_IDENTIFICADOR
-    | TK_IDENTIFICADOR '[' exp ']'
+    | '!' exp %prec UMINUS
+    | var
     | TK_LIT_INT
     | TK_LIT_FLOAT
+    | TK_LIT_STRING
+    | TK_LIT_CHAR
+    | TK_LIT_TRUE
+    | TK_LIT_FALSE
     | chamada_funcao;
 
 exp_list:
