@@ -171,9 +171,9 @@ chamada_parametro:
 
 /* Atribuição */
 atribuicao:
-    TK_IDENTIFICADOR '=' exp ';'
-    | TK_IDENTIFICADOR '[' exp ']' '=' exp ';'
-    | TK_IDENTIFICADOR '.' TK_IDENTIFICADOR '=' exp ';';
+    TK_IDENTIFICADOR '=' exp
+    | TK_IDENTIFICADOR '[' exp ']' '=' exp
+    | TK_IDENTIFICADOR '.' TK_IDENTIFICADOR '=' exp;
 
 exp:
     exp TK_OC_LE exp
