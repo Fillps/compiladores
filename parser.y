@@ -50,6 +50,12 @@
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+%left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
+%left '+' '-'
+%left '*' '/' '%'
+%left '^'
+%right UMINUS
+
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -58,7 +64,10 @@
 /* Regras (e ações) da gramática */
 
 programa:
-    novo_tipo | var_global | funcao;
+    novo_tipo
+    | var_global
+    | funcao
+    | atribuicao;
 
 /* Novo Tipo */
 novo_tipo:
@@ -129,7 +138,7 @@ comando_simples:
     | id; // Adicionar novos comandos aqui
 
 id:
-    TK_IDENTIFICADOR chamada_funcao /* função*/
+    chamada_funcao /* função*/
     | TK_IDENTIFICADOR TK_IDENTIFICADOR/* variável de tipo não-primitivo */; // Feito para evitar conflitos (provisório)
 
 var_declaracao_primitiva:
@@ -149,7 +158,7 @@ var_valor:
     | TK_LIT_STRING;
 
 chamada_funcao:
-    '(' chamada_parametros ')';
+    TK_IDENTIFICADOR '(' chamada_parametros ')';
 
 chamada_parametros:
     chamada_parametro
@@ -159,6 +168,33 @@ chamada_parametro:
     %empty
     | var_valor
     | '.';
+
+/* Atribuição */
+atribuicao:
+    TK_IDENTIFICADOR '=' exp ';'
+    | TK_IDENTIFICADOR '[' exp ']' '=' exp ';'
+    | TK_IDENTIFICADOR '.' TK_IDENTIFICADOR '=' exp ';';
+
+exp:
+    exp TK_OC_LE exp
+    | exp TK_OC_GE exp
+    | exp TK_OC_EQ exp
+    | exp TK_OC_NE exp
+    | exp TK_OC_AND exp
+    | exp TK_OC_OR exp
+    | exp '+' exp
+    | exp '-' exp
+    | exp '*' exp
+    | exp '/' exp
+    | exp '%' exp
+    | exp '^' exp;
+    | '(' exp ')'
+    | '-' exp %prec UMINUS
+    | TK_IDENTIFICADOR
+    | TK_IDENTIFICADOR '[' exp ']'
+    | TK_LIT_INT
+    | TK_LIT_FLOAT
+    | chamada_funcao;
 
 
 
