@@ -64,10 +64,13 @@
 /* Regras (e ações) da gramática */
 
 programa:
+    comando programa
+    | %empty;
+
+comando:
     novo_tipo
     | var_global
-    | funcao
-    | atribuicao;
+    | funcao;
 
 /* Novo Tipo */
 novo_tipo:
@@ -134,8 +137,10 @@ bloco_comando:
 
 comando_simples:
     var_declaracao_primitiva
-    //| atribuicao
-    | id; // Adicionar novos comandos aqui
+    | atribuicao
+    | id
+    | input
+    | output; // Adicionar novos comandos aqui
 
 id:
     chamada_funcao /* função*/
@@ -196,8 +201,16 @@ exp:
     | TK_LIT_FLOAT
     | chamada_funcao;
 
+exp_list:
+    exp ',' exp_list
+    | exp;
 
+/* Input e Output */
+output:
+    TK_PR_OUTPUT exp_list;
 
+input:
+    TK_PR_INPUT exp;
 
 
 
