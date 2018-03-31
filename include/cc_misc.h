@@ -6,6 +6,6 @@ int getLineNumber (void);
 void yyerror (char const *mensagem);
 void main_init (int argc, char **argv);
 void main_finalize (void);
-void insert_symbol(void);
+void insert_symbol(int token);
 
 #endif
