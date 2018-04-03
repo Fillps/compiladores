@@ -3,6 +3,12 @@
 */
 %code requires{
 #include "main.h"
+#include "cc_misc.h"
+
+}
+
+%union {
+    symbol_t* valor_lexico;
 }
 
 /* Declaração dos tokens da linguagem */

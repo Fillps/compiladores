@@ -61,15 +61,15 @@ protected   return TK_PR_PROTECTED;
 
 "//".*|" "|"\t"
 
-false       return TK_LIT_FALSE;
-true        return TK_LIT_TRUE;
+false       {yylval.valor_lexico = insert_symbol(TK_LIT_FALSE); return TK_LIT_FALSE;}
+true        {yylval.valor_lexico = insert_symbol(TK_LIT_TRUE); return TK_LIT_TRUE;}
 
-{ALFABETIC}{ALFANUMERIC}*   {insert_symbol(TK_IDENTIFICADOR); return TK_IDENTIFICADOR;}
-\'.?\'                      {insert_symbol(TK_LIT_CHAR); return TK_LIT_CHAR;}
-\"([^\"\n])*\"              {insert_symbol(TK_LIT_STRING); return TK_LIT_STRING;}
+{ALFABETIC}{ALFANUMERIC}*   {yylval.valor_lexico = insert_symbol(TK_IDENTIFICADOR); return TK_IDENTIFICADOR;}
+\'.?\'                      {yylval.valor_lexico = insert_symbol(TK_LIT_CHAR); return TK_LIT_CHAR;}
+\"([^\"\n])*\"              {yylval.valor_lexico = insert_symbol(TK_LIT_STRING); return TK_LIT_STRING;}
 
-{INTEGER}                   {insert_symbol(TK_LIT_INT); return TK_LIT_INT;}
-{FLOAT}                     {insert_symbol(TK_LIT_FLOAT); return TK_LIT_FLOAT;}
+{INTEGER}                   {yylval.valor_lexico = insert_symbol(TK_LIT_INT); return TK_LIT_INT;}
+{FLOAT}                     {yylval.valor_lexico = insert_symbol(TK_LIT_FLOAT); return TK_LIT_FLOAT;}
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);
