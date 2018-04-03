@@ -8,13 +8,14 @@ extern int line_number;
 extern char* yytext;
 extern int yyleng;
 
-typedef struct symbol{
-    int line;
-    int token;
-    void * value;
-}symbol_t;
-
 comp_dict_t* symbol_table;
+
+void create_int(symbol_t* symbol, char* key);
+void create_float(symbol_t* symbol, char* key);
+void create_char(symbol_t* symbol, char* key);
+void create_string(symbol_t* symbol, char* key);
+void create_bool(symbol_t* symbol, char* key, int bool);
+void create_id(symbol_t* symbol, char* key);
 
 int comp_get_line_number (void)
 {
@@ -46,72 +47,35 @@ void main_finalize (void)
 
 void comp_print_table (void)
 {
-  //para cada entrada na tabela de símbolos
-  //Etapa 1: chame a função cc_dict_etapa_1_print_entrada
     for (int i = 0; i < symbol_table->size; i++)
         if (symbol_table->data[i]){
             symbol_t* symbol = (symbol_t*)symbol_table->data[i]->value;
             cc_dict_etapa_2_print_entrada(symbol_table->data[i]->key, symbol->line, symbol->token);
         }
-
 }
 
-void insert_symbol(int token){
+symbol_t* insert_symbol(int token){
 
     symbol_t* symbol = (symbol_t*)malloc(sizeof(symbol_t));
-    char* key = (char*)malloc((yyleng + 1)*sizeof(char));
+    char* key = (char*)calloc(yyleng + 1, sizeof(char));
 
     symbol->line = line_number;
 
     switch (token){
         case TK_LIT_INT:
-            symbol->value = (int*)malloc(sizeof(int));
-            *(int*)symbol->value = atoi(yytext);
-            symbol->token = POA_LIT_INT;
-            strcpy(key, yytext);
-            key[yyleng] = POA_LIT_INT + '0';
-            key[yyleng + 1] = '\0';
-            break;
+            create_int(symbol, key); break;
         case TK_LIT_FLOAT:
-            symbol->value = (float*)malloc(sizeof(float));
-            *(float*)symbol->value = atof(yytext);
-            symbol->token = POA_LIT_FLOAT;
-            strcpy(key, yytext);
-            key[yyleng] = POA_LIT_FLOAT + '0';
-            key[yyleng + 1] = '\0';
-            break;
+            create_float(symbol, key); break;
         case TK_LIT_CHAR:
-            if (strcmp(yytext, "\'\'")==0){
-                free(symbol);
-                free(key);
-                return;
-            }
-            symbol->value = (char*)malloc(sizeof(char));
-            *(int*)symbol->value = yytext[1];
-            symbol->token = POA_LIT_CHAR;
-            strcpy(key, yytext+1);
-            key[1] = POA_LIT_CHAR + '0';
-            key[2] = '\0';
-            break;
+            create_char(symbol, key); break;
         case TK_LIT_STRING:
-            if (strcmp(yytext, "\"\"")==0) {
-                free(symbol);
-                free(key);
-                return;
-            }
-            symbol->value = strdup(yytext+1);
-            ((char*)symbol->value)[yyleng - 1] = '\0';
-            symbol->token = POA_LIT_STRING;
-            strcpy(key, yytext+1);
-            key[yyleng - 2] = POA_LIT_STRING + '0';
-            key[yyleng - 1] = '\0';
-            break;
+            create_string(symbol, key); break;
+        case TK_LIT_FALSE:
+            create_bool(symbol, key, FALSE); break;
+        case TK_LIT_TRUE:
+            create_bool(symbol, key, TRUE); break;
         case TK_IDENTIFICADOR:
-            symbol->value = strdup(yytext);
-            symbol->token = POA_IDENT;
-            strcpy(key, yytext);
-            key[yyleng] = POA_IDENT + '0';
-            key[yyleng + 1] = '\0';
+            create_id(symbol, key);
     }
 
     symbol_t* value = dict_put(symbol_table, key, symbol);
@@ -128,4 +92,72 @@ void insert_symbol(int token){
     }
 
     free(key);
+    return value;
 }
+
+void create_int(symbol_t* symbol, char* key)
+{
+    symbol->value = (int*)malloc(sizeof(int));
+    *(int*)symbol->value = atoi(yytext);
+    symbol->token = POA_LIT_INT;
+    strcpy(key, yytext);
+    key[yyleng] = POA_LIT_INT + '0';
+}
+
+void create_float(symbol_t* symbol, char* key)
+{
+    symbol->value = (float*)malloc(sizeof(float));
+    *(float*)symbol->value = atof(yytext);
+    symbol->token = POA_LIT_FLOAT;
+    strcpy(key, yytext);
+    key[yyleng] = POA_LIT_FLOAT + '0';
+}
+
+void create_char(symbol_t* symbol, char* key)
+{
+    symbol->token = POA_LIT_CHAR;
+    symbol->value = (char*)malloc(sizeof(char));
+    if (strcmp(yytext, "\'\'")==0) {
+        *(char *)symbol->value = '\0';
+        key[0] = POA_LIT_CHAR + '0';
+    }
+    else{
+        *(char *)symbol->value = yytext[1];
+        strcpy(key, yytext+1);
+        key[1] = POA_LIT_CHAR + '0';
+    }
+}
+
+void create_string(symbol_t* symbol, char* key)
+{
+    symbol->token = POA_LIT_STRING;
+    if (strcmp(yytext, "\"\"")==0) {
+        symbol->value = (char*)malloc(sizeof(char));
+        ((char*)symbol->value)[0] = '\0';
+        key[0] = POA_LIT_STRING + '0';
+    }
+    else {
+        symbol->value = strdup(yytext+1);
+        ((char*)symbol->value)[yyleng - 2] = '\0';
+        strcpy(key, yytext+1);
+        key[yyleng - 2] = POA_LIT_STRING + '0';
+    }
+}
+
+void create_bool(symbol_t* symbol, char* key, int bool)
+{
+    symbol->value = (int*)malloc(sizeof(int));
+    *(int*)symbol->value = bool;
+    symbol->token = POA_LIT_BOOL;
+    strcpy(key, yytext);
+    key[yyleng] = POA_LIT_BOOL + '0';
+}
+
+void create_id(symbol_t* symbol, char* key)
+{
+    symbol->value = strdup(yytext);
+    symbol->token = POA_IDENT;
+    strcpy(key, yytext);
+    key[yyleng] = POA_IDENT + '0';
+}
+

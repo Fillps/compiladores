@@ -2,10 +2,19 @@
 #define __MISC_H
 #include <stdio.h>
 
+#define FALSE 0
+#define TRUE 1
+
+typedef struct symbol{
+    int line;
+    int token;
+    void * value;
+}symbol_t;
+
 int getLineNumber (void);
 void yyerror (char const *mensagem);
 void main_init (int argc, char **argv);
 void main_finalize (void);
-void insert_symbol(int token);
+symbol_t* insert_symbol(int token);
 
 #endif
