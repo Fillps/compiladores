@@ -64,12 +64,12 @@ protected   return TK_PR_PROTECTED;
 false       return TK_LIT_FALSE;
 true        return TK_LIT_TRUE;
 
-{ALFABETIC}{ALFANUMERIC}*   {insert_symbol(); return TK_IDENTIFICADOR;}
-\'.?\'                      {insert_symbol(); return TK_LIT_CHAR;}
-\"([^\"\n])*\"              {insert_symbol(); return TK_LIT_STRING;}
+{ALFABETIC}{ALFANUMERIC}*   {insert_symbol(TK_IDENTIFICADOR); return TK_IDENTIFICADOR;}
+\'.?\'                      {insert_symbol(TK_LIT_CHAR); return TK_LIT_CHAR;}
+\"([^\"\n])*\"              {insert_symbol(TK_LIT_STRING); return TK_LIT_STRING;}
 
-{INTEGER}                   {insert_symbol(); return TK_LIT_INT;}
-{FLOAT}                     {insert_symbol(); return TK_LIT_FLOAT;}
+{INTEGER}                   {insert_symbol(TK_LIT_INT); return TK_LIT_INT;}
+{FLOAT}                     {insert_symbol(TK_LIT_FLOAT); return TK_LIT_FLOAT;}
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);
