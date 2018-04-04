@@ -150,7 +150,7 @@ comando_simples:
     | input ';'
     | output ';'
     | retorno
-    | if;
+    | controle_fluxo;
 
 id:
     chamada_funcao /* função*/
@@ -182,7 +182,31 @@ var:
     | TK_IDENTIFICADOR '[' exp ']'
     | var '.' var;
 
-exp: exp TK_OC_LE exp | exp TK_OC_GE exp | exp TK_OC_EQ exp | exp TK_OC_NE exp | exp TK_OC_AND exp | exp TK_OC_OR exp | exp '+' exp | exp '-' exp | exp '*' exp | exp '/' exp | exp '%' exp | exp '^' exp; | '(' exp ')' | '+' exp %prec UMINUS | '-' exp %prec UMINUS | '!' exp %prec UMINUS | var | TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_STRING | TK_LIT_CHAR | TK_LIT_TRUE | TK_LIT_FALSE | chamada_funcao;
+exp: 
+    exp TK_OC_LE exp
+    | exp TK_OC_GE exp
+    | exp TK_OC_EQ exp
+    | exp TK_OC_NE exp
+    | exp TK_OC_AND exp
+    | exp TK_OC_OR exp
+    | exp '+' exp
+    | exp '-' exp
+    | exp '*' exp
+    | exp '/' exp
+    | exp '%' exp
+    | exp '^' exp
+    | '(' exp ')'
+    | '+' exp %prec UMINUS
+    | '-' exp %prec UMINUS
+    | '!' exp %prec UMINUS
+    | var
+    | TK_LIT_INT
+    | TK_LIT_FLOAT
+    | TK_LIT_STRING
+    | TK_LIT_CHAR
+    | TK_LIT_TRUE
+    | TK_LIT_FALSE
+    | chamada_funcao;
 
 exp_list:
     exp ',' exp_list
@@ -224,15 +248,33 @@ retorno:
     comando_retorno
     | TK_PR_BREAK ';'
     | TK_PR_CONTINUE ';'
-    | TK_PR_CASE ':';
+    | TK_PR_CASE TK_LIT_INT ':';
 
 /* Controle de Fluxo */
+controle_fluxo:
+    if
+    | switch
+    | while
+    | do_while;
 
 /* IF */
 if:
-    TK_PR_IF '(' exp ')' TK_PR_THEN bloco_comando
-    | TK_PR_IF '(' exp ')' TK_PR_THEN bloco_comando TK_PR_ELSE bloco_comando;
+    TK_PR_IF '(' exp ')' TK_PR_THEN corpo
+    | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo;
 
+/* SWITCH */
+switch:
+    TK_PR_SWITCH '(' exp ')' corpo;
+
+/* WHILE e DO-WHILE */
+while_exp:
+    TK_PR_WHILE '(' exp ')';
+
+while:
+    while_exp TK_PR_DO corpo;
+
+do_while:
+    TK_PR_DO corpo while_exp;
 
 
     
