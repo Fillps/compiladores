@@ -141,14 +141,15 @@ corpo:
 
 bloco_comando:
     %empty
-    | comando_simples ';' bloco_comando;
+    | comando_simples bloco_comando;
 
 comando_simples:
-    var_declaracao_primitiva
-    | atribuicao
-    | id
-    | input
-    | output; // Adicionar novos comandos aqui
+    var_declaracao_primitiva ';'
+    | atribuicao ';'
+    | id ';'
+    | input ';'
+    | output ';'
+    | retorno;
 
 id:
     chamada_funcao /* função*/
@@ -237,6 +238,19 @@ shift:
 shift_operator:
     TK_OC_SL
     | TK_OC_SR;
+
+/* Comandos de retorno, break, case e continue */
+comando_retorno:
+    TK_PR_RETURN exp ';';
+
+retorno:
+    comando_retorno
+    | TK_PR_BREAK ';'
+    | TK_PR_CONTINUE ';'
+    | TK_PR_CASE ':';
+
+
+
     
 
 
