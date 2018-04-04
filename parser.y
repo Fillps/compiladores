@@ -45,8 +45,8 @@
 %token TK_OC_OR
 %token TK_OC_SL
 %token TK_OC_SR
-%token TK_OC_XOR    // token de %|%
-%token TK_OC_RR     // rotate right (%>%)
+%token TK_OC_XOR
+%token TK_OC_RR
 %token TK_LIT_INT
 %token TK_LIT_FLOAT
 %token TK_LIT_FALSE
@@ -152,7 +152,8 @@ comando_simples:
 
 id:
     chamada_funcao /* função*/
-    | TK_IDENTIFICADOR TK_IDENTIFICADOR/* variável de tipo não-primitivo */; // Feito para evitar conflitos (provisório)
+    | TK_IDENTIFICADOR TK_IDENTIFICADOR // variável de tipo não-primitivo
+    | shift;
 
 var_declaracao_primitiva:
     static_opc const_opc tipo TK_IDENTIFICADOR var_atribuicao;
@@ -169,18 +170,6 @@ var_valor:
     | TK_LIT_FALSE
     | TK_LIT_TRUE
     | TK_LIT_STRING;
-
-chamada_funcao:
-    TK_IDENTIFICADOR '(' chamada_parametros ')';
-
-chamada_parametros:
-    chamada_parametro
-    | chamada_parametro ',' chamada_parametros;
-
-chamada_parametro:
-    %empty
-    | var_valor
-    | '.';
 
 /* Atribuição */
 atribuicao:
@@ -228,6 +217,27 @@ output:
 input:
     TK_PR_INPUT exp;
 
+/* Chamada de função */
+chamada_funcao:
+    TK_IDENTIFICADOR '(' chamada_parametros ')';
+
+chamada_parametros:
+    chamada_parametro
+    | chamada_parametro ',' chamada_parametros;
+
+chamada_parametro:
+    %empty
+    | var_valor
+    | '.';
+
+/* Comandos de Shift */
+shift:
+    TK_IDENTIFICADOR shift_operator TK_LIT_INT;
+
+shift_operator:
+    TK_OC_SL
+    | TK_OC_SR;
+    
 
 
 
