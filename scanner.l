@@ -12,8 +12,8 @@ LETTER      [a-zA-Z]
 ALFABETIC   [a-zA-Z_]
 ALFANUMERIC [a-zA-Z0-9_]
 
-INTEGER     ("+"|"-")?{DIGIT}+
-FLOAT       {INTEGER}\.{DIGIT}*((e|E){INTEGER})?
+INTEGER     {DIGIT}+
+FLOAT       {INTEGER}\.{DIGIT}*((e|E)("+"|"-")?{INTEGER})?
 
 %x IN_COMMENT
 %%
