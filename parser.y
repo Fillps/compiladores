@@ -45,8 +45,8 @@
 %token TK_OC_OR
 %token TK_OC_SL
 %token TK_OC_SR
-%token TK_OC_XOR
-%token TK_OC_RR
+%token TK_OC_PIPE
+%token TK_OC_PIPEG
 %token TK_LIT_INT
 %token TK_LIT_FLOAT
 %token TK_LIT_FALSE
@@ -150,7 +150,7 @@ comando_simples:
     | controle_fluxo;
 
 id:
-    chamada_funcao /* função */
+    chamada_funcao pipe /* função */
     | TK_IDENTIFICADOR TK_IDENTIFICADOR // variável de tipo não-primitivo
     | shift;
 
@@ -226,8 +226,7 @@ chamada_parametros:
 
 chamada_parametro:
     %empty
-    | var_valor
-    | '.';
+    | var_valor;
 
 /* Comandos de Shift */
 shift:
@@ -295,6 +294,22 @@ for_comando:
 lista_comandos: 
     for_comando
     | for_comando ',' lista_comandos;
+
+/* Pipes */
+pipe:
+    TK_OC_PIPE funcoes_encadeadas
+    | TK_OC_PIPEG funcoes_encadeadas
+    | %empty;
+
+funcoes_encadeadas:
+    funcao_encadeada
+    | funcao_encadeada TK_OC_PIPE funcoes_encadeadas
+    | funcao_encadeada TK_OC_PIPEG funcoes_encadeadas;
+
+funcao_encadeada:
+    TK_IDENTIFICADOR '(' '.' ')'
+    | TK_IDENTIFICADOR '(' '.' ',' chamada_parametros ')';
+
 
 
     

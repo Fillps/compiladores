@@ -54,8 +54,8 @@ protected   return TK_PR_PROTECTED;
 "||"        return TK_OC_OR;
 ">>"        return TK_OC_SR;
 "<<"        return TK_OC_SL;
-"%|%"       return TK_OC_XOR;
-"%>%"       return TK_OC_RR;
+"%|%"       return TK_OC_PIPE;
+"%>%"       return TK_OC_PIPEG;
 
 "\n"        line_number++;
 
