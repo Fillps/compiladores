@@ -228,7 +228,7 @@ chamada_parametros:
 
 chamada_parametro:
     %empty
-    | var_valor;
+    | exp;
 
 /* Comandos de Shift */
 shift:
