@@ -147,7 +147,8 @@ comando_simples:
     | input ';'
     | output ';'
     | retorno
-    | controle_fluxo;
+    | controle_fluxo
+    | corpo ';';
 
 id:
     chamada_funcao pipe /* função */
