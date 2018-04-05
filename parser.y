@@ -118,15 +118,15 @@ funcao:
     cabecalho corpo;
 
 cabecalho:
-    static_opc tipo TK_IDENTIFICADOR '(' lista ')';
+    static_opc tipo TK_IDENTIFICADOR '(' lista ')'
+    | static_opc tipo TK_IDENTIFICADOR '(' ')';
 
 lista:
     parametro
     | parametro ',' lista;
 
 parametro:
-    %empty
-    | const_opc tipo TK_IDENTIFICADOR;
+    const_opc tipo TK_IDENTIFICADOR;
 
 const_opc:
     %empty
@@ -220,14 +220,11 @@ input:
 
 /* Chamada de função */
 chamada_funcao:
-    TK_IDENTIFICADOR '(' chamada_parametros ')';
+    TK_IDENTIFICADOR '(' chamada_parametros ')'
+    | TK_IDENTIFICADOR '(' ')';
 
 chamada_parametros:
-    chamada_parametro
-    | chamada_parametro ',' chamada_parametros;
-
-chamada_parametro:
-    %empty
+    exp ',' chamada_parametros
     | exp;
 
 /* Comandos de Shift */
