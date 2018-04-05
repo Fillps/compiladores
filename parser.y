@@ -203,7 +203,7 @@ exp:
     | TK_LIT_CHAR
     | TK_LIT_TRUE
     | TK_LIT_FALSE
-    | chamada_funcao;
+    | chamada_funcao pipe;
 
 exp_lista:
     exp ',' exp_lista
@@ -309,32 +309,5 @@ funcoes_encadeadas:
 funcao_encadeada:
     TK_IDENTIFICADOR '(' '.' ')'
     | TK_IDENTIFICADOR '(' '.' ',' chamada_parametros ')';
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 %%
