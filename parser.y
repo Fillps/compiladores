@@ -146,9 +146,10 @@ comando_simples:
     | id ';'
     | input ';'
     | output ';'
-    | retorno
-    | controle_fluxo
-    | corpo ';';
+    | ret_break_cont ';'
+    | controle_fluxo ';'
+    | corpo ';'
+    | case;
 
 id:
     chamada_funcao pipe /* função */
@@ -238,14 +239,13 @@ shift_operador:
     | TK_OC_SR;
 
 /* Comandos de retorno, break, case e continue */
-comando_retorno:
-    TK_PR_RETURN exp ';';
+ret_break_cont:
+    TK_PR_RETURN exp
+    | TK_PR_BREAK
+    | TK_PR_CONTINUE;
 
-retorno:
-    comando_retorno
-    | TK_PR_BREAK ';'
-    | TK_PR_CONTINUE ';'
-    | TK_PR_CASE TK_LIT_INT ':';
+case:
+    TK_PR_CASE TK_LIT_INT ':';
 
 /* Controle de Fluxo */
 controle_fluxo:
