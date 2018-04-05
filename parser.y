@@ -117,9 +117,6 @@ vetor_global:
 funcao:
     cabecalho corpo;
 
-corpo:
-    %empty;
-
 cabecalho:
     static_opc tipo TK_IDENTIFICADOR '(' lista ')';
 
@@ -153,7 +150,7 @@ comando_simples:
     | controle_fluxo;
 
 id:
-    chamada_funcao /* função*/
+    chamada_funcao /* função */
     | TK_IDENTIFICADOR TK_IDENTIFICADOR // variável de tipo não-primitivo
     | shift;
 
@@ -208,13 +205,13 @@ exp:
     | TK_LIT_FALSE
     | chamada_funcao;
 
-exp_list:
-    exp ',' exp_list
+exp_lista:
+    exp ',' exp_lista
     | exp;
 
 /* Input e Output */
 output:
-    TK_PR_OUTPUT exp_list;
+    TK_PR_OUTPUT exp_lista;
 
 input:
     TK_PR_INPUT exp;
@@ -234,9 +231,9 @@ chamada_parametro:
 
 /* Comandos de Shift */
 shift:
-    TK_IDENTIFICADOR shift_operator TK_LIT_INT;
+    TK_IDENTIFICADOR shift_operador TK_LIT_INT;
 
-shift_operator:
+shift_operador:
     TK_OC_SL
     | TK_OC_SR;
 
@@ -255,7 +252,9 @@ controle_fluxo:
     if
     | switch
     | while
-    | do_while;
+    | do_while
+    | foreach
+    | for;
 
 /* IF */
 if:
@@ -275,6 +274,27 @@ while:
 
 do_while:
     TK_PR_DO corpo while_exp;
+
+/* FOREACH */
+foreach:
+    TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' exp_lista ')' corpo;
+
+/* FOR */
+for:
+    TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo;
+
+for_comando: 
+    var_declaracao_primitiva
+    | atribuicao
+    | id
+    | TK_PR_BREAK
+    | TK_PR_CONTINUE
+    | TK_PR_RETURN exp
+    | controle_fluxo;
+
+lista_comandos: 
+    for_comando
+    | for_comando ',' lista_comandos;
 
 
     
