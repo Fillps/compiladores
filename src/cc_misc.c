@@ -3,12 +3,14 @@
 #include <main.h>
 #include "cc_dict.h"
 #include "cc_misc.h"
+#include "cc_tree.h"
 
 extern int line_number;
 extern char* yytext;
 extern int yyleng;
 
 comp_dict_t* symbol_table;
+comp_tree_t* ast;
 
 void create_int(symbol_t* symbol, char* key);
 void create_float(symbol_t* symbol, char* key);
@@ -161,3 +163,37 @@ void create_id(symbol_t* symbol, char* key)
     key[yyleng] = POA_IDENT + '0';
 }
 
+// Abstract Sintatic Tree
+
+comp_tree_t* createASTNode(int type, symbol_t *token){
+    nodeAST* nodeAST = malloc(sizeof(struct nodeAST));
+
+    nodeAST->type = type;
+    nodeAST->symbol = token;
+
+    return tree_make_node(nodeAST);
+}
+
+comp_tree_t* createASTUnaryNode(int type, symbol_t* token, comp_tree_t* node){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node);
+    
+    return newnode;
+}
+
+comp_tree_t* createASTBinaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node1);
+    tree_insert_node(newnode,node2);
+    
+    return newnode;
+}
+
+comp_tree_t* createASTTernaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node1);
+    tree_insert_node(newnode,node2);
+    tree_insert_node(newnode,node3);
+    
+    return newnode;
+}
