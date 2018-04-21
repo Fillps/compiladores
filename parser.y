@@ -4,7 +4,10 @@
 %code requires{
 #include "main.h"
 #include "cc_misc.h"
+#include "cc_tree.h"
+#include "cc_ast.h"
 
+comp_tree_t* ast;
 }
 
 %union {
@@ -71,14 +74,16 @@
 %%
 /* Regras (e ações) da gramática */
 
-programa:
-    comando programa
-    | %empty;
+programa:                {ast = tree_new();}
+    comando programa     {comp_tree_t* node0 = tree_make_node(AST_PROGRAMA); tree_insert_node(ast,node0);} 
+    | %empty             {comp_tree_t* node1 = tree_make_node(NULL); tree_insert_node(ast,node1);}
+    ;             
 
 comando:
-    novo_tipo
-    | var_global
-    | funcao;
+    novo_tipo            
+    | var_global         
+    | funcao            
+    ;
 
 /* Novo Tipo */
 novo_tipo:
