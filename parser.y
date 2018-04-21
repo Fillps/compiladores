@@ -7,11 +7,11 @@
 #include "cc_tree.h"
 #include "cc_ast.h"
 
-comp_tree_t* ast;
 }
 
 %union {
     symbol_t* valor_lexico;
+    compt_tree_t* ast;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -67,6 +67,32 @@ comp_tree_t* ast;
 
 %left '.'
 
+%type <ast>programa
+%type <ast>comando
+%type <ast>funcao
+%type <ast>cabecalho
+%type <ast>corpo
+
+%type <ast>if
+%type <ast>while
+%type <ast>for
+%type <ast>foreach
+%type <ast>pipe
+%type <ast>do_while
+%type <ast>switch
+%type <ast>case
+%type <ast>while_exp
+
+%type <ast>static_opc
+%type <ast>tipo
+%type <ast>lista
+%type <ast>parametro
+%type <ast>const_opc
+%type <ast>corpo
+%type <ast>bloco_comando
+%type <ast>comando_simples
+%type <ast>id
+
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -74,16 +100,14 @@ comp_tree_t* ast;
 %%
 /* Regras (e ações) da gramática */
 
-programa:                {ast = tree_new();}
-    comando programa     {comp_tree_t* node0 = tree_make_node(AST_PROGRAMA); tree_insert_node(ast,node0);} 
-    | %empty             {comp_tree_t* node1 = tree_make_node(NULL); tree_insert_node(ast,node1);}
-    ;             
+programa:                
+    comando programa         { $$ = createASTBinaryNode(AST_PROGRAMA,NULL,$1,$$); ast=$$; }
+    | %empty                 { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };             
 
 comando:
-    novo_tipo            
-    | var_global         
-    | funcao            
-    ;
+    novo_tipo                { $$ = NULL; }     
+    | var_global             { $$ = NULL; }
+    | funcao                 { $$ = $1; };
 
 /* Novo Tipo */
 novo_tipo:
