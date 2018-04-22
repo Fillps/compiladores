@@ -88,7 +88,6 @@
 %type <ast>lista
 %type <ast>parametro
 %type <ast>const_opc
-%type <ast>corpo
 %type <ast>bloco_comando
 %type <ast>comando_simples
 %type <ast>id
