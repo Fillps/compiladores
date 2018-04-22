@@ -43,4 +43,8 @@
 #define AST_FOR                 33
 #define AST_FOREACH             34
 #define AST_SWITCH              35
+
+#define AST_ATRIBUTO            36
+#define AST_ARIM_MOD            37
+#define AST_ARIM_POT            38
 #endif

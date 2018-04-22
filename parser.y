@@ -7,11 +7,12 @@
 #include "cc_tree.h"
 #include "cc_ast.h"
 
+extern comp_tree_t* ast;
 }
 
 %union {
     symbol_t* valor_lexico;
-    compt_tree_t* ast;
+    comp_tree_t* ast;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -50,13 +51,13 @@
 %token TK_OC_SR
 %token TK_OC_PIPE
 %token TK_OC_PIPEG
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token <valor_lexico>TK_LIT_INT
+%token <valor_lexico>TK_LIT_FLOAT
+%token <valor_lexico>TK_LIT_FALSE
+%token <valor_lexico>TK_LIT_TRUE
+%token <valor_lexico>TK_LIT_CHAR
+%token <valor_lexico>TK_LIT_STRING
+%token <valor_lexico>TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
 %left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
@@ -64,8 +65,6 @@
 %left '*' '/' '%'
 %left '^'
 %right UMINUS
-
-%left '.'
 
 %type <ast>programa
 %type <ast>comando
@@ -83,15 +82,21 @@
 %type <ast>case
 %type <ast>while_exp
 
-%type <ast>static_opc
-%type <ast>tipo
-%type <ast>lista
-%type <ast>parametro
-%type <ast>const_opc
 %type <ast>bloco_comando
 %type <ast>comando_simples
+%type <ast>var_declaracao_primitiva
+%type <ast>var_valor
 %type <ast>id
-
+%type <ast>atribuicao
+%type <ast>input
+%type <ast>output
+%type <ast>chamada_funcao
+%type <ast>ret_break_cont
+%type <ast>controle_fluxo
+%type <ast>shift
+%type <ast>exp
+%type <ast>var
+%type <ast>pre_var
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -143,11 +148,11 @@ vetor_global:
 
 /* Função */
 funcao:
-    cabecalho corpo;
+    cabecalho corpo { $$ = createASTBinaryNode(AST_FUNCAO, NULL, $1, $2); };
 
 cabecalho:
-    static_opc tipo TK_IDENTIFICADOR '(' lista ')'
-    | static_opc tipo TK_IDENTIFICADOR '(' ')';
+    static_opc tipo TK_IDENTIFICADOR '(' lista ')' { $$ = createASTNode(AST_IDENTIFICADOR, $3); }
+    | static_opc tipo TK_IDENTIFICADOR '(' ')'  { $$ = createASTNode(AST_IDENTIFICADOR, $3); };
 
 lista:
     parametro
@@ -162,78 +167,81 @@ const_opc:
 
 /* Blocos de Comando */
 corpo:
-    '{' bloco_comando '}';
+    '{' bloco_comando '}' { $$ = $2; };
 
 bloco_comando:
-    %empty
-    | comando_simples bloco_comando;
+    %empty { $$ = createASTNode(AST_BLOCO, NULL); }
+    | comando_simples bloco_comando { $$ = createASTBinaryNode(AST_BLOCO, NULL, $1, $2); };
 
 comando_simples:
-    var_declaracao_primitiva ';'
-    | atribuicao ';'
-    | id ';'
-    | input ';'
-    | output ';'
-    | ret_break_cont ';'
-    | controle_fluxo ';'
-    | corpo ';'
-    | case;
+    var_declaracao_primitiva ';'    { $$ = $1; }
+    | atribuicao ';'                { $$ = $1; }
+    | id ';'                        { $$ = $1; }
+    | chamada_funcao ';'            { $$ = $1; }
+    | input ';'                     { $$ = $1; }
+    | output ';'                    { $$ = $1; }
+    | ret_break_cont ';'            { $$ = $1; }
+    | controle_fluxo ';'            { $$ = $1; }
+    | corpo ';'                     { $$ = $1; }
+    | case                          { $$ = $1; }
+    | pipe ';'                      { $$ = $1; }
+    | shift ';'                     { $$ = $1; };
 
 id:
-    chamada_funcao pipe /* função */
-    | TK_IDENTIFICADOR TK_IDENTIFICADOR // variável de tipo não-primitivo
-    | shift;
+    TK_IDENTIFICADOR TK_IDENTIFICADOR { $$ = NULL; };// variável de tipo não-primitivo
 
 var_declaracao_primitiva:
-    static_opc const_opc tipo TK_IDENTIFICADOR var_atribuicao;
-
-var_atribuicao:
-    %empty
-    | TK_OC_LE var_valor;
+    static_opc const_opc tipo TK_IDENTIFICADOR TK_OC_LE var_valor   { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, createASTNode(AST_IDENTIFICADOR, $4), $6); }
+    | static_opc const_opc tipo TK_IDENTIFICADOR                    { $$ = NULL; };
 
 var_valor:
-    TK_IDENTIFICADOR
-    | TK_LIT_INT
-    | TK_LIT_FLOAT
-    | TK_LIT_CHAR
-    | TK_LIT_FALSE
-    | TK_LIT_TRUE
-    | TK_LIT_STRING;
+    TK_IDENTIFICADOR    { $$ = createASTNode(AST_IDENTIFICADOR, $1); }
+    | TK_LIT_INT        { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_FLOAT      { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_CHAR       { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_FALSE      { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_TRUE       { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_STRING     { $$ = createASTNode(AST_LITERAL, $1); };
 
 /* Atribuição */
 atribuicao:
-    var '=' exp;
+    var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); };
 
 var:
-    TK_IDENTIFICADOR
-    | TK_IDENTIFICADOR '[' exp ']'
-    | var '.' var;
+    pre_var '.' pre_var { $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3); }
+    | pre_var           { $$ = $1; };
+
+pre_var:
+    TK_IDENTIFICADOR                { $$ = createASTNode(AST_IDENTIFICADOR, $1); }
+    | TK_IDENTIFICADOR '[' exp ']'  { $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, createASTNode(AST_IDENTIFICADOR, $1), $3); };
+
 
 exp: 
-    exp TK_OC_LE exp
-    | exp TK_OC_GE exp
-    | exp TK_OC_EQ exp
-    | exp TK_OC_NE exp
-    | exp TK_OC_AND exp
-    | exp TK_OC_OR exp
-    | exp '+' exp
-    | exp '-' exp
-    | exp '*' exp
-    | exp '/' exp
-    | exp '%' exp
-    | exp '^' exp
-    | '(' exp ')'
-    | '+' exp %prec UMINUS
-    | '-' exp %prec UMINUS
-    | '!' exp %prec UMINUS
-    | var
-    | TK_LIT_INT
-    | TK_LIT_FLOAT
-    | TK_LIT_STRING
-    | TK_LIT_CHAR
-    | TK_LIT_TRUE
-    | TK_LIT_FALSE
-    | chamada_funcao pipe;
+    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); }
+    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); }
+    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); }
+    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); }
+    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); }
+    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); }
+    | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); }
+    | exp '-' exp           { $$ = createASTBinaryNode(AST_ARIM_SUBTRACAO, NULL, $1, $3); }
+    | exp '*' exp           { $$ = createASTBinaryNode(AST_ARIM_MULTIPLICACAO, NULL, $1, $3); }
+    | exp '/' exp           { $$ = createASTBinaryNode(AST_ARIM_DIVISAO, NULL, $1, $3); }
+    | exp '%' exp           { $$ = createASTBinaryNode(AST_ARIM_MOD, NULL, $1, $3); }
+    | exp '^' exp           { $$ = createASTBinaryNode(AST_ARIM_POT, NULL, $1, $3); }
+    | '(' exp ')'           { $$ = $2; }
+    | '+' exp %prec UMINUS  { $$ = $2; }
+    | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); }
+    | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); }
+    | var                   { $$ = $1; }
+    | TK_LIT_INT            { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_FLOAT          { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_STRING         { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_CHAR           { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_TRUE           { $$ = createASTNode(AST_LITERAL, $1); }
+    | TK_LIT_FALSE          { $$ = createASTNode(AST_LITERAL, $1); }
+    | chamada_funcao        { $$ = $1; }
+    | pipe                  { $$ = $1; };
 
 exp_lista:
     exp ',' exp_lista
@@ -323,9 +331,8 @@ lista_comandos:
 
 /* Pipes */
 pipe:
-    TK_OC_PIPE funcoes_encadeadas
-    | TK_OC_PIPEG funcoes_encadeadas
-    | %empty;
+    chamada_funcao TK_OC_PIPE funcoes_encadeadas
+    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas;
 
 funcoes_encadeadas:
     funcao_encadeada
