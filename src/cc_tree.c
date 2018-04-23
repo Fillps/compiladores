@@ -75,6 +75,22 @@ void tree_insert_node(comp_tree_t *tree, comp_tree_t *node){
 	comp_tree_last = tree;
 }
 
+void tree_set_next(comp_tree_t* tree, comp_tree_t* node){
+	if(tree=NULL){
+		ERRO("Cannot insert node, tree is null");
+	}
+	if(node==NULL){
+		ERRO("Cannot insert node, node is null");
+	}
+
+	tree->next = node;
+
+        fprintf (intfp, "node_%p [label=\"\"]\n", tree);
+	fprintf (intfp, "node_%p [label=\"\"]\n", node);
+	fprintf (intfp, "node_%p -> node_%p\n", tree, node);
+	comp_tree_last = tree;
+}
+
 int tree_has_child_nodes(comp_tree_t *tree){
 	if (tree != NULL){
 		if (tree->childnodes == 0)

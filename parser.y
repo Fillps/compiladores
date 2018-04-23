@@ -97,6 +97,11 @@ extern comp_tree_t* ast;
 %type <ast>exp
 %type <ast>var
 %type <ast>pre_var
+
+%type <ast>exp_lista
+%type <ast>lista_comandos
+%type <ast>for_comando
+
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -291,30 +296,30 @@ controle_fluxo:
 
 /* IF */
 if:
-    TK_PR_IF '(' exp ')' TK_PR_THEN corpo
-    | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo;
+    TK_PR_IF '(' exp ')' TK_PR_THEN corpo                       { $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6); }
+    | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo    { $$ = createASTTernaryNode(AST_IF_ELSE, NULL, $3, $6, $8); };
 
 /* SWITCH */
 switch:
-    TK_PR_SWITCH '(' exp ')' corpo;
+    TK_PR_SWITCH '(' exp ')' corpo    { $$ = createASTBinaryNode(AST_SWITCH, NULL, $3, $5); };
 
 /* WHILE e DO-WHILE */
 while_exp:
-    TK_PR_WHILE '(' exp ')';
+    TK_PR_WHILE '(' exp ')'    { $$ = $3; };
 
 while:
-    while_exp TK_PR_DO corpo;
+    while_exp TK_PR_DO corpo    { $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3); };
 
 do_while:
-    TK_PR_DO corpo while_exp;
+    TK_PR_DO corpo while_exp    { $$ = createASTBinaryNode(AST_DO_WHILE, NULL, $2, $3); };
 
 /* FOREACH */
 foreach:
-    TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' exp_lista ')' corpo;
+    TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' exp_lista ')' corpo    { $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7); };
 
 /* FOR */
 for:
-    TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo;
+    TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo    { $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9); };
 
 for_comando: 
     var_declaracao_primitiva
@@ -326,8 +331,8 @@ for_comando:
     | controle_fluxo;
 
 lista_comandos: 
-    for_comando
-    | for_comando ',' lista_comandos;
+    for_comando    { $$ = $1; }
+    | for_comando ',' lista_comandos    { $$ = $1; tree_set_next($1, $3); };
 
 /* Pipes */
 pipe:

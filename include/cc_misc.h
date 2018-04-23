@@ -27,5 +27,6 @@ comp_tree_t* createASTNode(int type, symbol_t* token);
 comp_tree_t* createASTUnaryNode(int type, symbol_t* token, comp_tree_t* node);
 comp_tree_t* createASTBinaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2);
 comp_tree_t* createASTTernaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3);
+comp_tree_t* createASTQuaternaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3, comp_tree_t* node4);
 
 #endif
