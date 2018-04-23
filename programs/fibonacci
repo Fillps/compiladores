@@ -1,0 +1,28 @@
+// Declarando vetor que armazenará a sequência
+int seq[100];
+
+// função main com o número 'n' de elementos da sequencia de fibonacci
+int main(int n)
+{
+    // Declaração de variáveis.
+    int a <= 0;
+    int b <= 1;
+    int auxiliar;
+    int i;
+    
+    // Não aceita sequencias maiores que 100
+    if(n <= 100) then
+    {
+        // Com a estrutura de controle for() gero a sequência.
+        for(i = 0: i <= n-1: i = i+1)
+        {
+            auxiliar = a + b;
+            a = b;
+            b = auxiliar;
+ 
+            // Armazeno no vetor.
+            seq[i] = auxiliar;
+        };
+    };
+    return seq[i];
+}

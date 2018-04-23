@@ -1,0 +1,28 @@
+// vetor como variável global
+int vetor[100];
+
+// função bubblesort
+int bubble_sort(int n)
+{
+    int k;
+    int j;
+    int aux;
+
+    // for() para percorrer o vetor de entrada n vezes
+    for(k = 1: k <= n-1: k = k+1)
+    {
+        //for() para percorrer o vetor
+        for(j = 0: j <= n-2: j = j-1)
+        {
+
+            if(vetor[j] >= vetor[j+1]+1) then
+            {
+                aux = vetor[j];
+                vetor[j] = vetor[j+1];
+                vetor[j+1] = aux;
+            };
+        };
+    };
+    return 0;
+}
+
