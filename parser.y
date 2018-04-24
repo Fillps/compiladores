@@ -71,7 +71,6 @@ extern comp_tree_t* ast;
 %type <ast>funcao
 %type <ast>cabecalho
 %type <ast>corpo
-
 %type <ast>if
 %type <ast>while
 %type <ast>for
@@ -81,7 +80,6 @@ extern comp_tree_t* ast;
 %type <ast>switch
 %type <ast>case
 %type <ast>while_exp
-
 %type <ast>bloco_comando
 %type <ast>comando_simples
 %type <ast>var_declaracao_primitiva
@@ -97,11 +95,10 @@ extern comp_tree_t* ast;
 %type <ast>exp
 %type <ast>var
 %type <ast>pre_var
-
 %type <ast>exp_lista
 %type <ast>lista_comandos
 %type <ast>for_comando
-
+%type <ast>chamada_parametros
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -251,24 +248,24 @@ exp:
     | pipe                  { $$ = $1; };
 
 exp_lista:
-    exp ',' exp_lista
-    | exp;
+    exp ',' exp_lista       { $$ = $1; tree_set_next($1, $3); }
+    | exp                   { $$ = $1; };
 
 /* Input e Output */
 output:
-    TK_PR_OUTPUT exp_lista;
+    TK_PR_OUTPUT exp_lista  { $$ = createASTUnaryNode(AST_OUTPUT, NULL, $2); };
 
 input:
-    TK_PR_INPUT exp;
+    TK_PR_INPUT exp         { $$ = createASTUnaryNode(AST_INPUT, NULL, $2); };
 
 /* Chamada de função */
 chamada_funcao:
-    TK_IDENTIFICADOR '(' chamada_parametros ')'
-    | TK_IDENTIFICADOR '(' ')';
+    TK_IDENTIFICADOR '(' chamada_parametros ')' { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, createASTNode(AST_IDENTIFICADOR, $1), $3); }
+    | TK_IDENTIFICADOR '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, createASTNode(AST_IDENTIFICADOR, $1)); };
 
 chamada_parametros:
-    exp ',' chamada_parametros
-    | exp;
+    exp ',' chamada_parametros  { $$ = $1; tree_set_next($1, $3); }
+    | exp                       { $$ = $1; };
 
 /* Comandos de Shift */
 shift:
