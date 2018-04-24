@@ -318,7 +318,7 @@ do_while:
 
 /* FOREACH */
 foreach:
-    TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' exp_lista ')' corpo    { $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7); };
+    TK_PR_FOREACH '(' TK_IDENTIFICADOR ':' exp_lista ')' corpo    { $$ = createASTTernaryNode(AST_FOREACH, NULL, createASTNode(AST_IDENTIFICADOR, $3), $5, $7); };
 
 /* FOR */
 for:
