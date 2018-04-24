@@ -269,29 +269,26 @@ chamada_parametros:
 
 /* Comandos de Shift */
 shift:
-    TK_IDENTIFICADOR shift_operador TK_LIT_INT;
-
-shift_operador:
-    TK_OC_SL
-    | TK_OC_SR;
+    TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT    { $$ = createASTBinaryNode(AST_SHIFT_LEFT, NULL, createASTNode(AST_IDENTIFICADOR, $1), createASTNode(AST_LITERAL, $3)); }
+    | TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT  { $$ = createASTBinaryNode(AST_SHIFT_RIGHT, NULL, createASTNode(AST_IDENTIFICADOR, $1), createASTNode(AST_LITERAL, $3)); };
 
 /* Comandos de retorno, break, case e continue */
 ret_break_cont:
-    TK_PR_RETURN exp
-    | TK_PR_BREAK
-    | TK_PR_CONTINUE;
+    TK_PR_RETURN exp    { $$ = createASTUnaryNode(AST_RETURN, NULL, $2); }
+    | TK_PR_BREAK       { $$ = createASTNode(AST_BREAK, NULL); }
+    | TK_PR_CONTINUE    { $$ = createASTNode(AST_CONTINUE, NULL); };
 
 case:
-    TK_PR_CASE TK_LIT_INT ':';
+    TK_PR_CASE TK_LIT_INT ':'   { $$ = createASTNode(AST_CASE, NULL); };
 
 /* Controle de Fluxo */
 controle_fluxo:
-    if
-    | switch
-    | while
-    | do_while
-    | foreach
-    | for;
+    if          { $$ = $1; }
+    | switch    { $$ = $1; }
+    | while     { $$ = $1; }
+    | do_while  { $$ = $1; }
+    | foreach   { $$ = $1; }
+    | for       { $$ = $1; };
 
 /* IF */
 if:
@@ -321,16 +318,19 @@ for:
     TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo    { $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9); };
 
 for_comando: 
-    var_declaracao_primitiva
-    | atribuicao
-    | id
-    | TK_PR_BREAK
-    | TK_PR_CONTINUE
-    | TK_PR_RETURN exp
-    | controle_fluxo;
+    var_declaracao_primitiva    { $$ = $1; }
+    | atribuicao                { $$ = $1; }
+    | id                        { $$ = $1; }
+    | chamada_funcao            { $$ = $1; }
+    | pipe                      { $$ = $1; }
+    | shift                     { $$ = $1; }
+    | TK_PR_BREAK               { $$ = $1; }
+    | TK_PR_CONTINUE            { $$ = $1; }
+    | TK_PR_RETURN exp          { $$ = $1; }
+    | controle_fluxo            { $$ = $1; };
 
 lista_comandos: 
-    for_comando    { $$ = $1; }
+    for_comando                         { $$ = $1; }
     | for_comando ',' lista_comandos    { $$ = $1; tree_set_next($1, $3); };
 
 /* Pipes */
