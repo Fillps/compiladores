@@ -37,6 +37,7 @@ void tree_free(comp_tree_t *tree){
 		if (ptr->first != NULL)
 			tree_free(ptr->first);
 		ptr = ptr->next;
+		free(tree->value);
 		free(tree);
 		tree = ptr;
 	} while(ptr != NULL);
@@ -53,15 +54,6 @@ comp_tree_t* tree_make_node(void *value){
 	node->last = NULL;
 	node->next = NULL;
 	node->prev = NULL;
-
-    if (value != NULL){
-        nodeAST *node_info = ((nodeAST*)value);
-        if (node_info->symbol != NULL)
-            gv_declare(((nodeAST*)value)->type, node, (((nodeAST*)value)->symbol)->lexeme);
-		else
-            gv_declare(((nodeAST*)value)->type, node, NULL);
-    }
-
 
 	return node;
 }
@@ -81,8 +73,6 @@ void tree_insert_node(comp_tree_t *tree, comp_tree_t *node){
 		tree->last = node;
 	}
 	++tree->childnodes;
-
-    gv_connect(tree, node);
 
 	fprintf (intfp, "node_%p [label=\"\"]\n", tree);
 	fprintf (intfp, "node_%p [label=\"\"]\n", node);
@@ -145,3 +135,76 @@ static void tree_debug_print_s(comp_tree_t *tree, int spacing){
 void tree_debug_print(comp_tree_t *tree){
 	tree_debug_print_s(tree,0);
 }
+
+// Abstract Sintatic Tree
+
+comp_tree_t* createASTNode(int type, symbol_t *token){
+    nodeAST* nodeAST = calloc(1, sizeof(struct nodeAST));
+
+    nodeAST->type = type;
+    nodeAST->symbol = token;
+
+    return tree_make_node(nodeAST);
+}
+
+comp_tree_t* createASTUnaryNode(int type, symbol_t* token, comp_tree_t* node){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node);
+
+    return newnode;
+}
+
+comp_tree_t* createASTBinaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node1);
+    tree_insert_node(newnode,node2);
+
+    return newnode;
+}
+
+comp_tree_t* createASTTernaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node1);
+    tree_insert_node(newnode,node2);
+    tree_insert_node(newnode,node3);
+
+    return newnode;
+}
+
+comp_tree_t* createASTQuaternaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3, comp_tree_t* node4){
+    comp_tree_t* newnode = createASTNode(type, token);
+    tree_insert_node(newnode,node1);
+    tree_insert_node(newnode,node2);
+    tree_insert_node(newnode,node3);
+    tree_insert_node(newnode,node4);
+
+    return newnode;
+}
+
+void connect_all_childs(comp_tree_t* tree){
+    comp_tree_t* child = tree->first;
+    for (int i = 0; i < tree->childnodes; i++){
+        gv_connect(tree, child);
+        child = child->next;
+    }
+}
+
+void build_gv(comp_tree_t* tree){
+    comp_tree_t *ptr = tree;
+    do {
+        nodeAST *node_info = (tree->value);
+        if (node_info->symbol != NULL)
+            gv_declare(node_info->type, tree, (node_info->symbol)->lexeme);
+        else
+            gv_declare(node_info->type, tree, NULL);
+
+        if (ptr->first != NULL){
+            build_gv(ptr->first);
+            connect_all_childs(tree);
+        }
+        ptr = ptr->next;
+        tree = ptr;
+    } while(ptr != NULL);
+}
+
+

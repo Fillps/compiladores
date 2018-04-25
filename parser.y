@@ -7,7 +7,7 @@
 #include "cc_tree.h"
 #include "cc_ast.h"
 
-extern comp_tree_t* ast;
+comp_tree_t* ast;
 }
 
 %union {
@@ -112,7 +112,7 @@ extern comp_tree_t* ast;
 /* Regras (e ações) da gramática */
 
 programa:
-    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; }
+    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); build_gv($$); ast = $$; }
     | %empty    { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };
 
 comandos:
@@ -332,30 +332,83 @@ controle_fluxo:
 
 /* IF */
 if:
-    TK_PR_IF '(' exp ')' TK_PR_THEN corpo                       { $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6); }
-    | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo    { $$ = createASTTernaryNode(AST_IF_ELSE, NULL, $3, $6, $8); };
-
+    TK_PR_IF '(' exp ')' TK_PR_THEN corpo                       {
+                                                                    if ($6 != NULL)
+                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                    else {
+                                                                        tree_free($3);
+                                                                        $$ = NULL;
+                                                                    }
+                                                                }
+    | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo    {
+                                                                    if ($6 && $8)
+                                                                        $$ = createASTTernaryNode(AST_IF_ELSE, NULL, $3, $6, $8);
+                                                                    else if ($6)
+                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                    else if ($8)
+                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
+                                                                    else
+                                                                        $$ = NULL;
+                                                                };
 /* SWITCH */
 switch:
-    TK_PR_SWITCH '(' exp ')' corpo    { $$ = createASTBinaryNode(AST_SWITCH, NULL, $3, $5); };
+    TK_PR_SWITCH '(' exp ')' corpo    {
+                                        if ($5)
+                                            $$ = createASTBinaryNode(AST_SWITCH, NULL, $3, $5);
+                                        else{
+                                            tree_free($3);
+                                            $$ = NULL;
+                                        }
+                                      };
 
 /* WHILE e DO-WHILE */
 while_exp:
     TK_PR_WHILE '(' exp ')'    { $$ = $3; };
 
 while:
-    while_exp TK_PR_DO corpo    { $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3); };
+    while_exp TK_PR_DO corpo    {
+                                    if ($3)
+                                        $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3);
+                                    else{
+                                        tree_free($1);
+                                        $$ = NULL;
+                                    }
+                                };
 
 do_while:
-    TK_PR_DO corpo while_exp    { $$ = createASTBinaryNode(AST_DO_WHILE, NULL, $2, $3); };
+    TK_PR_DO corpo while_exp    {
+                                    if ($2)
+                                        $$ = createASTBinaryNode(AST_DO_WHILE, NULL, $2, $3);
+                                    else{
+                                        tree_free($3);
+                                        $$ = NULL;
+                                    }
+                                };
 
 /* FOREACH */
 foreach:
-    TK_PR_FOREACH '(' identificador ':' exp_lista ')' corpo    { $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7); };
+    TK_PR_FOREACH '(' identificador ':' exp_lista ')' corpo    {
+                                                                if ($7)
+                                                                    $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7);
+                                                                else{
+                                                                    tree_free($3);
+                                                                    tree_free($5);
+                                                                    $$ = NULL;
+                                                                }
+                                                                };
 
 /* FOR */
 for:
-    TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo    { $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9); };
+    TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo   {
+                                                                            if ($7)
+                                                                                $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9);
+                                                                            else{
+                                                                                tree_free($3);
+                                                                                tree_free($5);
+                                                                                tree_free($7);
+                                                                                $$ = NULL;
+                                                                            }
+                                                                            };
 
 for_comando: 
     var_declaracao_primitiva    { $$ = $1; }
