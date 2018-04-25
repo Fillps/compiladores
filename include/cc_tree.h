@@ -90,6 +90,4 @@ comp_tree_t* tree_make_ternary_node(void *value, comp_tree_t* node1, comp_tree_t
  */
 void tree_debug_print(comp_tree_t *tree);
 
-void tree_set_next(comp_tree_t* tree, comp_tree_t* node);
-
 #endif //CC_TREE_H_

@@ -73,6 +73,12 @@ static inline char *__gv_description_from_type (int tipo)
   case AST_CHAMADA_DE_FUNCAO: return "call";
   case AST_SHIFT_LEFT: return "<<";
   case AST_SHIFT_RIGHT: return ">>";
+  case AST_BREAK: return "break";
+  case AST_CONTINUE: return "continue";
+  case AST_CASE: return "case";
+  case AST_FOR: return "for";
+  case AST_FOREACH: return "foreach";
+  case AST_SWITCH: return "switch";
   case AST_ATRIBUTO: return "atributo";
   case AST_ARIM_MOD: return "%";
   case AST_ARIM_POT: return "^";
@@ -200,6 +206,12 @@ void gv_declare (const int tipo, const void *pointer, char *name)
   case AST_CHAMADA_DE_FUNCAO:
   case AST_SHIFT_LEFT:
   case AST_SHIFT_RIGHT:
+  case AST_BREAK:
+  case AST_CONTINUE:
+  case AST_CASE:
+  case AST_FOR:
+  case AST_FOREACH:
+  case AST_SWITCH:
   case AST_ATRIBUTO:
   case AST_ARIM_MOD:
   case AST_ARIM_POT:

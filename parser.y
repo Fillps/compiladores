@@ -67,9 +67,9 @@ extern comp_tree_t* ast;
 %right UMINUS
 
 %type <ast>programa
+%type <ast>comandos
 %type <ast>comando
 %type <ast>funcao
-%type <ast>cabecalho
 %type <ast>corpo
 %type <ast>if
 %type <ast>while
@@ -106,9 +106,29 @@ extern comp_tree_t* ast;
 %%
 /* Regras (e ações) da gramática */
 
-programa:                
-    comando programa         { $$ = createASTBinaryNode(AST_PROGRAMA,NULL,$1,$$); ast=$$; }
-    | %empty                 { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };             
+programa:
+    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; }
+    | %empty    { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };
+
+comandos:
+    comando  comandos        {
+                                if ($1 != NULL && $2 != NULL) {
+                                    tree_insert_node($1, $2);
+                                    $$ = $1;
+                                }
+                                else if ($1 != NULL)
+                                    $$ = $1;
+                                else if ($2 != NULL)
+                                    $$ = $2;
+                                else
+                                    $$ = NULL;
+                             }
+    | comando                {
+                                if ($1 != NULL)
+                                    $$ = $1;
+                                else
+                                    $$ = NULL;
+                             }
 
 comando:
     novo_tipo                { $$ = NULL; }     
@@ -150,15 +170,15 @@ vetor_global:
 
 /* Função */
 funcao:
-    cabecalho corpo { $$ = createASTBinaryNode(AST_FUNCAO, NULL, $1, $2); };
+    static_opc tipo TK_IDENTIFICADOR params corpo { if ($5 != NULL) $$ = createASTUnaryNode(AST_FUNCAO, $3, $5); else $$ = createASTNode(AST_FUNCAO, $3); };
 
-cabecalho:
-    static_opc tipo TK_IDENTIFICADOR '(' lista ')' { $$ = createASTNode(AST_IDENTIFICADOR, $3); }
-    | static_opc tipo TK_IDENTIFICADOR '(' ')'  { $$ = createASTNode(AST_IDENTIFICADOR, $3); };
+params:
+     '(' param_lista ')'
+    |'(' ')'
 
-lista:
+param_lista:
     parametro
-    | parametro ',' lista;
+    | parametro ',' param_lista;
 
 parametro:
     const_opc tipo TK_IDENTIFICADOR;
@@ -172,8 +192,19 @@ corpo:
     '{' bloco_comando '}' { $$ = $2; };
 
 bloco_comando:
-    %empty { $$ = createASTNode(AST_BLOCO, NULL); }
-    | comando_simples bloco_comando { $$ = createASTBinaryNode(AST_BLOCO, NULL, $1, $2); };
+    %empty                          { $$ = NULL; }
+    | comando_simples bloco_comando {
+                                        if ($1 && $2) {
+                                            tree_insert_node($1, $2);
+                                            $$ = $1;
+                                        }
+                                        else if ($1 != NULL)
+                                            $$ = $1;
+                                        else if ($2 != NULL)
+                                            $$ = $2;
+                                        else
+                                            $$ = NULL;
+                                    };
 
 comando_simples:
     var_declaracao_primitiva ';'    { $$ = $1; }
@@ -248,7 +279,7 @@ exp:
     | pipe                  { $$ = $1; };
 
 exp_lista:
-    exp ',' exp_lista       { $$ = $1; tree_set_next($1, $3); }
+    exp ',' exp_lista       { $$ = $1; tree_insert_node($1, $3); }
     | exp                   { $$ = $1; };
 
 /* Input e Output */
@@ -264,7 +295,7 @@ chamada_funcao:
     | TK_IDENTIFICADOR '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, createASTNode(AST_IDENTIFICADOR, $1)); };
 
 chamada_parametros:
-    exp ',' chamada_parametros  { $$ = $1; tree_set_next($1, $3); }
+    exp ',' chamada_parametros  { $$ = $1; tree_insert_node($1, $3); }
     | exp                       { $$ = $1; };
 
 /* Comandos de Shift */
@@ -324,14 +355,12 @@ for_comando:
     | chamada_funcao            { $$ = $1; }
     | pipe                      { $$ = $1; }
     | shift                     { $$ = $1; }
-    | TK_PR_BREAK               { $$ = $1; }
-    | TK_PR_CONTINUE            { $$ = $1; }
-    | TK_PR_RETURN exp          { $$ = $1; }
+    | ret_break_cont            { $$ = $1; }
     | controle_fluxo            { $$ = $1; };
 
 lista_comandos: 
     for_comando                         { $$ = $1; }
-    | for_comando ',' lista_comandos    { $$ = $1; tree_set_next($1, $3); };
+    | for_comando ',' lista_comandos    { $$ = $1; tree_insert_node($1, $3); };
 
 /* Pipes */
 pipe:
