@@ -6,10 +6,13 @@
 #define FALSE 0
 #define TRUE 1
 
+#define GV_OUTPUT "saida.dot"
+
 typedef struct symbol{
     int line;
     int token;
     void * value;
+    char * lexeme;
 }symbol_t;
 
 typedef struct nodeAST{

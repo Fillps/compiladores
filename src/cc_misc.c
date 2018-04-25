@@ -31,6 +31,7 @@ void yyerror (char const *mensagem)
 
 void free_symbol(symbol_t* symbol){
     free(symbol->value);
+    free(symbol->lexeme);
     free(symbol);
 }
 
@@ -62,6 +63,7 @@ symbol_t* insert_symbol(int token){
     char* key = (char*)calloc(yyleng + 1, sizeof(char));
 
     symbol->line = line_number;
+    symbol->lexeme = strdup(yytext);
 
     switch (token){
         case TK_LIT_INT:

@@ -15,6 +15,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cc_misc.h>
+#include <cc_ast.h>
+#include <cc_gv.h>
 
 #include "cc_tree.h"
 
@@ -50,6 +53,16 @@ comp_tree_t* tree_make_node(void *value){
 	node->last = NULL;
 	node->next = NULL;
 	node->prev = NULL;
+
+    if (value != NULL){
+        nodeAST *node_info = ((nodeAST*)value);
+        if (node_info->symbol != NULL)
+            gv_declare(((nodeAST*)value)->type, node, (((nodeAST*)value)->symbol)->lexeme);
+		else
+            gv_declare(((nodeAST*)value)->type, node, NULL);
+    }
+
+
 	return node;
 }
 
@@ -69,6 +82,8 @@ void tree_insert_node(comp_tree_t *tree, comp_tree_t *node){
 	}
 	++tree->childnodes;
 
+    gv_connect(tree, node);
+
 	fprintf (intfp, "node_%p [label=\"\"]\n", tree);
 	fprintf (intfp, "node_%p [label=\"\"]\n", node);
 	fprintf (intfp, "node_%p -> node_%p\n", tree, node);
@@ -85,7 +100,9 @@ void tree_set_next(comp_tree_t* tree, comp_tree_t* node){
 
 	tree->next = node;
 
-        fprintf (intfp, "node_%p [label=\"\"]\n", tree);
+    gv_connect(tree, node);
+
+    fprintf (intfp, "node_%p [label=\"\"]\n", tree);
 	fprintf (intfp, "node_%p [label=\"\"]\n", node);
 	fprintf (intfp, "node_%p -> node_%p\n", tree, node);
 	comp_tree_last = tree;
