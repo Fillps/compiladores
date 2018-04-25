@@ -102,6 +102,8 @@ extern comp_tree_t* ast;
 %type <ast>lista_comandos
 %type <ast>for_comando
 %type <ast>chamada_parametros
+%type <ast>funcao_encadeada
+%type <ast>funcoes_encadeadas
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -131,7 +133,7 @@ comandos:
                                     $$ = $1;
                                 else
                                     $$ = NULL;
-                             }
+                             };
 
 comando:
     novo_tipo                { $$ = NULL; }     
@@ -191,7 +193,7 @@ funcao:
 
 params:
      '(' param_lista ')'
-    |'(' ')'
+    |'(' ')';
 
 param_lista:
     parametro
@@ -281,7 +283,7 @@ exp:
     | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); }
     | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); }
     | var                   { $$ = $1; }
-    | literal               { $$ = $1; };
+    | literal               { $$ = $1; }
     | chamada_funcao        { $$ = $1; }
     | pipe                  { $$ = $1; };
 
@@ -371,16 +373,34 @@ lista_comandos:
 
 /* Pipes */
 pipe:
-    chamada_funcao TK_OC_PIPE funcoes_encadeadas
-    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas;
+    chamada_funcao TK_OC_PIPE funcoes_encadeadas      { $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPE, NULL, $1, $3); }
+    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas   { $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $1, $3); };
 
 funcoes_encadeadas:
-    funcao_encadeada
-    | funcao_encadeada TK_OC_PIPE funcoes_encadeadas
-    | funcao_encadeada TK_OC_PIPEG funcoes_encadeadas;
+    funcao_encadeada    { $$ = $1; }
+    | funcao_encadeada TK_OC_PIPE funcoes_encadeadas    {
+                                                            if ($1 && $3) {
+                                                                //tree_insert_node($1, $3);
+                                                                $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPE, NULL, $1, $3);
+                                                            }
+                                                            else if ($1 != NULL)
+                                                                $$ = $1;
+                                                            else
+                                                                $$ = NULL;
+                                                        }
+    | funcao_encadeada TK_OC_PIPEG funcoes_encadeadas   {
+                                                            if ($1 && $3) {
+                                                                //tree_insert_node($1, $3);
+                                                                $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $1, $3);
+                                                            }
+                                                            else if ($1 != NULL)
+                                                                $$ = $1;
+                                                            else
+                                                                $$ = NULL;
+                                                        };
 
 funcao_encadeada:
-    TK_IDENTIFICADOR '(' '.' ')'
-    | TK_IDENTIFICADOR '(' '.' ',' chamada_parametros ')';
+    identificador '(' '.' ')'    { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); }
+    | identificador '(' '.' ',' chamada_parametros ')'    { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $5); };
 
 %%

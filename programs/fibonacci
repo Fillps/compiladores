@@ -11,10 +11,10 @@ int main(int n)
     int i;
     
     // Não aceita sequencias maiores que 100
-    if(n <= 100) then
+    if(n < 100) then
     {
         // Com a estrutura de controle for() gero a sequência.
-        for(i = 0: i <= n-1: i = i+1)
+        for(i = 0: i < n: i = i+1)
         {
             auxiliar = a + b;
             a = b;

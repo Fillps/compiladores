@@ -82,6 +82,8 @@ static inline char *__gv_description_from_type (int tipo)
   case AST_ATRIBUTO: return "atributo";
   case AST_ARIM_MOD: return "%";
   case AST_ARIM_POT: return "^";
+  case AST_ENCADEAMENTO_PIPE: return "%|%";
+  case AST_ENCADEAMENTO_PIPEG: return "%>%";
 
   default:
     fprintf (stderr, "%s: tipo provided is invalid here\n", __FUNCTION__);
@@ -214,6 +216,8 @@ void gv_declare (const int tipo, const void *pointer, char *name)
   case AST_SWITCH:
   case AST_ATRIBUTO:
   case AST_ARIM_MOD:
+  case AST_ENCADEAMENTO_PIPE:
+  case AST_ENCADEAMENTO_PIPEG:
   case AST_ARIM_POT:
     if (name){
       fprintf (stderr, "%s: name should be NULL\n", __FUNCTION__);

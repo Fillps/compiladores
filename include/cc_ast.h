@@ -47,4 +47,6 @@
 #define AST_ATRIBUTO            36
 #define AST_ARIM_MOD            37
 #define AST_ARIM_POT            38
+#define AST_ENCADEAMENTO_PIPE	39
+#define AST_ENCADEAMENTO_PIPEG	40
 #endif
