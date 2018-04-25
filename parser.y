@@ -152,7 +152,7 @@ literal:
     | TK_LIT_CHAR   { $$ = createASTNode(AST_LITERAL, $1); };
 
 literal_int:
-    TK_LIT_INT      { $$ = createASTNode(AST_LITERAL, $1); }
+    TK_LIT_INT      { $$ = createASTNode(AST_LITERAL, $1); };
 
 /* Novo Tipo */
 novo_tipo:
@@ -380,7 +380,6 @@ funcoes_encadeadas:
     funcao_encadeada    { $$ = $1; }
     | funcao_encadeada TK_OC_PIPE funcoes_encadeadas    {
                                                             if ($1 && $3) {
-                                                                //tree_insert_node($1, $3);
                                                                 $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPE, NULL, $1, $3);
                                                             }
                                                             else if ($1 != NULL)
@@ -390,7 +389,6 @@ funcoes_encadeadas:
                                                         }
     | funcao_encadeada TK_OC_PIPEG funcoes_encadeadas   {
                                                             if ($1 && $3) {
-                                                                //tree_insert_node($1, $3);
                                                                 $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $1, $3);
                                                             }
                                                             else if ($1 != NULL)
@@ -400,7 +398,7 @@ funcoes_encadeadas:
                                                         };
 
 funcao_encadeada:
-    identificador '(' '.' ')'    { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); }
+    identificador '(' '.' ')'                             { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); }
     | identificador '(' '.' ',' chamada_parametros ')'    { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $5); };
 
 %%
