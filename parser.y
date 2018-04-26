@@ -242,7 +242,7 @@ comando_simples:
     | output ';'                    { $$ = $1; }
     | ret_break_cont ';'            { $$ = $1; }
     | controle_fluxo ';'            { $$ = $1; }
-    | corpo ';'                     { $$ = $1; }
+    | corpo ';'                     { $$ = createASTUnaryNode(AST_BLOCO, NULL, $1); }
     | case                          { $$ = $1; }
     | pipe ';'                      { $$ = $1; }
     | shift ';'                     { $$ = $1; };
