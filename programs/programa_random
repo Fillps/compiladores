@@ -1,0 +1,60 @@
+// Definição de novos tipos
+class Clock[public int hour : public int minute : public int second : private float pulse];
+class Date[public int day : public int month : public int year];
+
+int increaseSecond(){
+	Clock.second = Clock.second + 1;
+	return Clock.second;
+}
+
+int increaseMinute(){
+	Clock.minute = Clock.minute + 1;
+	return Clock.minute;
+}
+
+int increaseHour(){
+	Clock.hour = Clock.hour + 1;
+}
+
+int passTime(){
+	if (Clock.pulse == 1) then {
+		if(Clock.second < 60) then{
+			increaseSecond();
+		}else{
+			if(Clock.minute < 60) then{
+				increaseMinute();
+			};
+		};
+	};		
+}
+
+string getMonth(){
+	string month <= " ";
+	input month;
+	return month;
+}
+
+string showMonth(){
+
+	string month <= " ";
+	month = getMonth();
+
+	switch (Date.month){
+		case 1:
+			month = "January";
+		case 2:
+			month = "February";
+		case 3:
+			month = "March";
+		case 4:
+			month = "April";
+		break;
+	};
+
+	output month;
+	
+	return month;
+}
+
+
+
