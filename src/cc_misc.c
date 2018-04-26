@@ -134,7 +134,10 @@ void create_char(symbol_t* symbol, char* key)
         strcpy(key, yytext+1);
         key[1] = POA_LIT_CHAR + '0';
     }
-    symbol->lexeme = strdup(symbol->value);
+
+    symbol->lexeme = (char*)calloc(2, sizeof(char));
+    symbol->lexeme[0] = *(char *)symbol->value;
+    symbol->lexeme[1] = '\0';
 }
 
 void create_string(symbol_t* symbol, char* key)
