@@ -193,6 +193,7 @@ void build_gv(comp_tree_t* tree){
     comp_tree_t *ptr = tree;
     do {
         nodeAST *node_info = (tree->value);
+
         if (node_info->symbol != NULL)
             gv_declare(node_info->type, tree, (node_info->symbol)->lexeme);
         else
@@ -205,6 +206,59 @@ void build_gv(comp_tree_t* tree){
         ptr = ptr->next;
         tree = ptr;
     } while(ptr != NULL);
+}
+
+void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node){
+    if (tree == NULL)
+    ERRO("Cannot insert node, tree is null");
+    if (node == NULL)
+    ERRO("Cannot insert node, node is null");
+
+    if (tree->childnodes == 1){
+        node->prev = tree->last;
+        tree->first->next = node;
+        tree->last = node;
+    } else if (tree->childnodes > 1){
+        node->prev = tree->first;
+        node->next = tree->first->next;
+        tree->first->next->prev = node;
+        tree->first->next = node;
+    } else {
+        tree->first = node;
+        tree->last = node;
+    }
+    ++tree->childnodes;
+
+    fprintf (intfp, "node_%p [label=\"\"]\n", tree);
+    fprintf (intfp, "node_%p [label=\"\"]\n", node);
+    fprintf (intfp, "node_%p -> node_%p\n", tree, node);
+    comp_tree_last = tree;
+}
+
+comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type){
+    comp_tree_t* tree = pipes;
+    if (pipes->value->type != AST_CHAMADA_DE_FUNCAO) {
+        tree = pipes->first->first->next;
+        while (tree->value->type != AST_CHAMADA_DE_FUNCAO)
+            tree = tree->first->first->next;
+    }
+    comp_tree_t* new_pipe = createASTUnaryNode(type, NULL, tree);
+
+    comp_tree_t temp;
+
+    temp = *tree;
+    *tree = *new_pipe;
+    *new_pipe = temp;
+
+    tree->prev = new_pipe->prev;
+    tree->next = new_pipe->next;
+    new_pipe->prev = NULL;
+    new_pipe->next = NULL;
+    tree->first = new_pipe;
+    tree->last = new_pipe;
+
+    tree_insert_node_as_second_child(new_pipe, func);
+    return pipes;
 }
 
 

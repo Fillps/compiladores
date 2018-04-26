@@ -426,28 +426,18 @@ lista_comandos:
 
 /* Pipes */
 pipe:
-    chamada_funcao TK_OC_PIPE funcoes_encadeadas      { $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPE, NULL, $1, $3); }
-    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas   { $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $1, $3); };
+    chamada_funcao TK_OC_PIPE funcoes_encadeadas      { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPE); }
+    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas   { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPEG); };
 
 funcoes_encadeadas:
-    funcao_encadeada    { $$ = $1; }
-    | funcao_encadeada TK_OC_PIPE funcoes_encadeadas    {
-                                                            if ($1 && $3) {
-                                                                $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPE, NULL, $1, $3);
-                                                            }
-                                                            else if ($1 != NULL)
-                                                                $$ = $1;
-                                                            else
-                                                                $$ = NULL;
+    funcao_encadeada                                    { $$ = $1; }
+    | funcoes_encadeadas TK_OC_PIPE funcao_encadeada    {
+                                                            tree_insert_node_as_second_child($3, $1);
+                                                            $$ = createASTUnaryNode(AST_ENCADEAMENTO_PIPE, NULL, $3);
                                                         }
-    | funcao_encadeada TK_OC_PIPEG funcoes_encadeadas   {
-                                                            if ($1 && $3) {
-                                                                $$ = createASTBinaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $1, $3);
-                                                            }
-                                                            else if ($1 != NULL)
-                                                                $$ = $1;
-                                                            else
-                                                                $$ = NULL;
+    | funcoes_encadeadas TK_OC_PIPEG funcao_encadeada   {
+                                                            tree_insert_node_as_second_child($3, $1);
+                                                            $$ = createASTUnaryNode(AST_ENCADEAMENTO_PIPEG, NULL, $3);
                                                         };
 
 funcao_encadeada:

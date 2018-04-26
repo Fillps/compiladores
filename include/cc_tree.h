@@ -105,5 +105,7 @@ comp_tree_t* createASTTernaryNode(int type, symbol_t* token, comp_tree_t* node1,
 comp_tree_t* createASTQuaternaryNode(int type, symbol_t* token, comp_tree_t* node1, comp_tree_t* node2, comp_tree_t* node3, comp_tree_t* node4);
 
 void build_gv(comp_tree_t* tree);
+void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node);
 
+comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type);
 #endif //CC_TREE_H_
