@@ -234,18 +234,28 @@ void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node){
     fprintf (intfp, "node_%p -> node_%p\n", tree, node);
     comp_tree_last = tree;
 }
-
+/***
+ * Insere o nodo da chamada de funcao no lugar correto da arvore.
+ * Como esse nodo carrega o pipe, a segunda funcao da expressao "perdeu seu pipe",
+ * entao ao inserir o nodo da chamada, tambem insere o pipe antes da segunda funcao.
+ *
+ * \param func: a AST da primeira funcao de uma exp pipe.
+ * \param pipes: a AST de toda a exp pipe sem a primeira funcao e seu pipe
+ * \param type: o pipe a ser inserido
+ */
 comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type){
     comp_tree_t* tree = pipes;
+    // procura o nodo que chama a segunda funcao da exp
     if (pipes->value->type != AST_CHAMADA_DE_FUNCAO) {
         tree = pipes->first->first->next;
         while (tree->value->type != AST_CHAMADA_DE_FUNCAO)
             tree = tree->first->first->next;
     }
+    //cria o nodo com o pipe a ser inserido
     comp_tree_t* new_pipe = createASTUnaryNode(type, NULL, tree);
 
+    //faz o swap entre o novo pipe e a segunda funcao
     comp_tree_t temp;
-
     temp = *tree;
     *tree = *new_pipe;
     *new_pipe = temp;
@@ -257,7 +267,9 @@ comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type){
     tree->first = new_pipe;
     tree->last = new_pipe;
 
+    //insere a primeira funcao da exp como param da segunda funcao
     tree_insert_node_as_second_child(new_pipe, func);
+    //retorna a AST inteira
     return pipes;
 }
 
