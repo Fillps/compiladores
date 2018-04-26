@@ -72,6 +72,8 @@ comp_tree_t* ast;
 %type <ast>identificador
 %type <ast>literal
 %type <ast>literal_int
+%type <ast>literal_int_neg
+%type <ast>literal_char
 %type <ast>funcao
 %type <ast>corpo
 %type <ast>if
@@ -149,10 +151,16 @@ literal:
     | literal_int   { $$ = $1; }
     | TK_LIT_FLOAT  { $$ = createASTNode(AST_LITERAL, $1); }
     | TK_LIT_STRING { $$ = createASTNode(AST_LITERAL, $1); }
-    | TK_LIT_CHAR   { $$ = createASTNode(AST_LITERAL, $1); };
+    | literal_char  { $$ = $1; };
 
 literal_int:
     TK_LIT_INT      { $$ = createASTNode(AST_LITERAL, $1); };
+
+literal_int_neg:
+    '-' literal_int { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); };
+
+literal_char:
+    TK_LIT_CHAR     { $$ = createASTNode(AST_LITERAL, $1); };
 
 /* Novo Tipo */
 novo_tipo:
@@ -319,7 +327,9 @@ ret_break_cont:
     | TK_PR_CONTINUE    { $$ = createASTNode(AST_CONTINUE, NULL); };
 
 case:
-    TK_PR_CASE TK_LIT_INT ':'   { $$ = createASTNode(AST_CASE, NULL); };
+    TK_PR_CASE literal_int ':'      { $$ = createASTUnaryNode(AST_CASE, NULL, $2); }
+    | TK_PR_CASE literal_int_neg ':'{ $$ = createASTUnaryNode(AST_CASE, NULL, $2); }
+    | TK_PR_CASE literal_char ':'   { $$ = createASTUnaryNode(AST_CASE, NULL, $2); }
 
 /* Controle de Fluxo */
 controle_fluxo:
