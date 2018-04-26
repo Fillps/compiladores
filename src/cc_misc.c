@@ -66,7 +66,6 @@ symbol_t* insert_symbol(int token){
     char* key = (char*)calloc(yyleng + 1, sizeof(char));
 
     symbol->line = line_number;
-    symbol->lexeme = strdup(yytext);
 
     switch (token){
         case TK_LIT_INT:
@@ -104,6 +103,7 @@ symbol_t* insert_symbol(int token){
 
 void create_int(symbol_t* symbol, char* key)
 {
+    symbol->lexeme = strdup(yytext);
     symbol->value = (int*)malloc(sizeof(int));
     *(int*)symbol->value = atoi(yytext);
     symbol->token = POA_LIT_INT;
@@ -113,6 +113,7 @@ void create_int(symbol_t* symbol, char* key)
 
 void create_float(symbol_t* symbol, char* key)
 {
+    symbol->lexeme = strdup(yytext);
     symbol->value = (float*)malloc(sizeof(float));
     *(float*)symbol->value = atof(yytext);
     symbol->token = POA_LIT_FLOAT;
@@ -133,6 +134,7 @@ void create_char(symbol_t* symbol, char* key)
         strcpy(key, yytext+1);
         key[1] = POA_LIT_CHAR + '0';
     }
+    symbol->lexeme = strdup(symbol->value);
 }
 
 void create_string(symbol_t* symbol, char* key)
@@ -149,10 +151,12 @@ void create_string(symbol_t* symbol, char* key)
         strcpy(key, yytext+1);
         key[yyleng - 2] = POA_LIT_STRING + '0';
     }
+    symbol->lexeme = strdup(symbol->value);
 }
 
 void create_bool(symbol_t* symbol, char* key, int bool)
 {
+    symbol->lexeme = strdup(yytext);
     symbol->value = (int*)malloc(sizeof(int));
     *(int*)symbol->value = bool;
     symbol->token = POA_LIT_BOOL;
@@ -162,6 +166,7 @@ void create_bool(symbol_t* symbol, char* key, int bool)
 
 void create_id(symbol_t* symbol, char* key)
 {
+    symbol->lexeme = strdup(yytext);
     symbol->value = strdup(yytext);
     symbol->token = POA_IDENT;
     strcpy(key, yytext);
