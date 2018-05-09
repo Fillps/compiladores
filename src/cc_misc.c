@@ -219,6 +219,7 @@ void check_declared(symbol_t* symbol, int type){
         if (value->type[scope_stack[i]] != UNDECLARED)
             return;
 
+    printf("IKS_ERROR_UNDECLARED(line: %d, id: %s)\n", symbol->line, symbol->lexeme);
     exit(IKS_ERROR_UNDECLARED);
 }
 
@@ -226,8 +227,10 @@ void declare(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
     for(int i = 0; i < scope_stack_length; i++)
-        if (value->type[scope_stack[i]] != UNDECLARED)
+        if (value->type[scope_stack[i]] != UNDECLARED){
+            printf("IKS_ERROR_DECLARED(line: %d, id: %s)\n", symbol->line, symbol->lexeme);
             exit(IKS_ERROR_DECLARED);
+        }
 
     value->type[current_scope] = type;
 }
@@ -236,8 +239,10 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     id_value_t* value = symbol->value;
 
     for(int i = 0; i < scope_stack_length; i++)
-        if (value->type[scope_stack[i]] != UNDECLARED)
+        if (value->type[scope_stack[i]] != UNDECLARED){
+            printf("IKS_ERROR_DECLARED(line: %d, id: %s, class: %s)\n", symbol->line, symbol->lexeme, class_type->lexeme);
             exit(IKS_ERROR_DECLARED);
+        }
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
@@ -248,6 +253,7 @@ void declare_function(symbol_t* symbol, int type){
 
     for(int i = 0; i < scope_stack_length; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
+            printf("IKS_ERROR_DECLARED(line: %d, id: %s)\n", symbol->line, symbol->lexeme);
             exit(IKS_ERROR_DECLARED);
 
     value->type[current_scope] = DECL_FUNCTION;
@@ -270,10 +276,13 @@ void check_usage_variable(symbol_t* symbol, int type){
 
     for(int i = 0; i < scope_stack_length; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            if (value->type[scope_stack[i]] < decl_variable(POA_LIT_INT) || value->type[scope_stack[i]] > decl_variable(POA_IDENT))
+            if (value->type[scope_stack[i]] < decl_variable(POA_LIT_INT) || value->type[scope_stack[i]] > decl_variable(POA_IDENT)){
+                printf("IKS_ERROR_VARIABLE\n");
                 exit(IKS_ERROR_VARIABLE);
-            else if (value->type[scope_stack[i]] != type)
+            }else if (value->type[scope_stack[i]] != type){
+                printf("IKS_ERROR_VARIABLE\n");
                 exit(IKS_ERROR_WRONG_TYPE);
+            }
 }
 
 void check_usage_vector(symbol_t* symbol, int type){
@@ -281,20 +290,27 @@ void check_usage_vector(symbol_t* symbol, int type){
 
     for(int i = 0; i < scope_stack_length; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            if (value->type[scope_stack[i]] < decl_vector(POA_LIT_INT) || value->type[scope_stack[i]] > decl_vector(POA_LIT_BOOL))
+            if (value->type[scope_stack[i]] < decl_vector(POA_LIT_INT) || value->type[scope_stack[i]] > decl_vector(POA_LIT_BOOL)){
+                printf("IKS_ERROR_VECTOR\n");
                 exit(IKS_ERROR_VECTOR);
-            else if (value->type[scope_stack[i]] != type)
+            }else if (value->type[scope_stack[i]] != type){
+                printf("IKS_ERROR_WRONG_TYPE\n");
                 exit(IKS_ERROR_WRONG_TYPE);
+            }
 }
 
 void check_usage_function(symbol_t* symbol){
-    if (check_usage, DECL_FUNCTION == FALSE)
+    if (check_usage, DECL_FUNCTION == FALSE){
+        printf("IKS_ERROR_FUNCTION\n");
         exit(IKS_ERROR_FUNCTION);
+    }
 }
 
 void check_usage_class(symbol_t* symbol){
-    if (check_usage, DECL_CLASS == FALSE)
+    if (check_usage, DECL_CLASS == FALSE){
+        printf("IKS_ERROR_CLASS\n");
         exit(IKS_ERROR_CLASS);
+    }
 }
 
 void create_params(){
@@ -307,6 +323,3 @@ void add_param(symbol_t* symbol, int type){
     function_info->param_type[function_info->params_length] = type;
     function_info->params_length++;
 }
-
-
-
