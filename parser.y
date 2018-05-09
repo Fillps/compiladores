@@ -13,6 +13,7 @@ comp_tree_t* ast;
 %union {
     symbol_t* valor_lexico;
     comp_tree_t* ast;
+    int type;
 }
 
 /* Declaração dos tokens da linguagem */
@@ -106,6 +107,9 @@ comp_tree_t* ast;
 %type <ast>chamada_parametros
 %type <ast>funcao_encadeada
 %type <ast>funcoes_encadeadas
+
+%type <type>tipo
+%type <type>vetor_global
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -164,7 +168,7 @@ literal_char:
 
 /* Novo Tipo */
 novo_tipo:
-    TK_PR_CLASS TK_IDENTIFICADOR '[' campo ']' ';';
+    TK_PR_CLASS TK_IDENTIFICADOR '[' campo ']' ';' { declare($2, DECL_CLASS); };
 
 campo:
     encapsulamento tipo TK_IDENTIFICADOR
@@ -176,28 +180,43 @@ encapsulamento:
     | TK_PR_PROTECTED;
 
 tipo:
-    TK_PR_FLOAT
-    | TK_PR_INT
-    | TK_PR_BOOL
-    | TK_PR_CHAR
-    | TK_PR_STRING;
+    TK_PR_FLOAT     { $$ = POA_LIT_FLOAT; }
+    | TK_PR_INT     { $$ = POA_LIT_INT; }
+    | TK_PR_BOOL    { $$ = POA_LIT_BOOL; }
+    | TK_PR_CHAR    { $$ = POA_LIT_CHAR; }
+    | TK_PR_STRING  { $$ = POA_LIT_STRING; };
 
 /* Variável Global */
 var_global:
-    static_opc tipo TK_IDENTIFICADOR vetor_global ';'
-    | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';';
+    static_opc tipo TK_IDENTIFICADOR vetor_global ';'               {
+                                                                        if($4 == FALSE)
+                                                                            declare($3, decl_vector($2));
+                                                                        else
+                                                                            declare($3, decl_variable($2));
+                                                                    }
+    | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';' {
+                                                                        check_declared($2, DECL_CLASS);
+                                                                        if($4 == FALSE)
+                                                                            declare($3, decl_vector($2->token));
+                                                                        else
+                                                                            declare($3, decl_variable($2->token));
+                                                                    };
 
 static_opc:
     %empty
     | TK_PR_STATIC;
 
 vetor_global:
-    %empty
-    | '[' TK_LIT_INT ']';
+    %empty                  { $$ = FALSE; }
+    | '[' TK_LIT_INT ']'    { $$ = POA_LIT_INT; };
 
 /* Função */
 funcao:
-    static_opc tipo TK_IDENTIFICADOR params corpo { if ($5 != NULL) $$ = createASTUnaryNode(AST_FUNCAO, $3, $5); else $$ = createASTNode(AST_FUNCAO, $3); };
+    static_opc tipo TK_IDENTIFICADOR { create_params(); } params { declare_function($3, $2); } corpo  { if ($7 != NULL)
+                                                                                                            $$ = createASTUnaryNode(AST_FUNCAO, $3, $7);
+                                                                                                        else
+                                                                                                            $$ = createASTNode(AST_FUNCAO, $3);
+                                                                                                      };
 
 params:
      '(' param_lista ')'
@@ -208,7 +227,7 @@ param_lista:
     | parametro ',' param_lista;
 
 parametro:
-    const_opc tipo TK_IDENTIFICADOR;
+    const_opc tipo TK_IDENTIFICADOR { add_param($3, $2); };
 
 const_opc:
     %empty
@@ -216,7 +235,7 @@ const_opc:
 
 /* Blocos de Comando */
 corpo:
-    '{' bloco_comando '}' { $$ = $2; };
+    { start_scope(); } '{' bloco_comando '}' { end_scope(); $$ = $3; };
 
 bloco_comando:
     %empty                          { $$ = NULL; }
@@ -248,11 +267,14 @@ comando_simples:
     | shift ';'                     { $$ = $1; };
 
 id:
-    TK_IDENTIFICADOR TK_IDENTIFICADOR { $$ = NULL; };// variável de tipo não-primitivo
+    TK_IDENTIFICADOR TK_IDENTIFICADOR { $$ = NULL;  // variável de tipo não-primitivo
+                                        check_declared($1, DECL_CLASS);
+                                        declare_non_primitive($2, decl_variable($1->token), $1);
+                                      };
 
 var_declaracao_primitiva:
-    static_opc const_opc tipo identificador TK_OC_LE var_valor   { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6); }
-    | static_opc const_opc tipo TK_IDENTIFICADOR                    { $$ = NULL; };
+    static_opc const_opc tipo identificador TK_OC_LE var_valor   { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6); declare($4->value->symbol, decl_variable($3)); }
+    | static_opc const_opc tipo TK_IDENTIFICADOR                 { $$ = NULL; declare($4, decl_variable($3)); };
 
 var_valor:
     identificador   { $$ = $1; }

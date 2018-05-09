@@ -12,6 +12,16 @@ extern int yyleng;
 extern comp_tree_t* ast;
 
 comp_dict_t* symbol_table;
+function_info_t* function_info;
+
+int scope_stack[DICT_SIZE];
+int *sp;
+int current_scope;
+int scope_stack_length;
+
+
+#define push(sp, n) (*((sp)++) = (n))
+#define pop(sp) (*--(sp))
 
 
 void create_int(symbol_t* symbol, char* key);
@@ -20,6 +30,8 @@ void create_char(symbol_t* symbol, char* key);
 void create_string(symbol_t* symbol, char* key);
 void create_bool(symbol_t* symbol, char* key, int bool);
 void create_id(symbol_t* symbol, char* key);
+
+void scope_init();
 
 int comp_get_line_number (void)
 {
@@ -40,6 +52,7 @@ void free_symbol(symbol_t* symbol){
 void main_init (int argc, char **argv)
 {
     symbol_table = dict_new();
+    scope_init();
 }
 
 void main_finalize (void)
@@ -170,10 +183,129 @@ void create_bool(symbol_t* symbol, char* key, int bool)
 void create_id(symbol_t* symbol, char* key)
 {
     symbol->lexeme = strdup(yytext);
-    symbol->value = strdup(yytext);
     symbol->token = POA_IDENT;
     strcpy(key, yytext);
     key[yyleng] = POA_IDENT + '0';
+
+    id_value_t* value = malloc(sizeof(id_value_t));
+    value->scope_length = 0;
+    memset(value->type, 0, sizeof(int)*SCOPE_SIZE);
+    symbol->value = value;
+
+}
+
+void scope_init(){
+    sp = scope_stack;
+    current_scope = 0;
+    push(sp, current_scope);
+    scope_stack_length = 1;
+}
+
+void start_scope(){
+    current_scope++;
+    push(sp, current_scope);
+    scope_stack_length++;
+}
+
+void end_scope(){
+    pop(sp);
+    scope_stack_length--;
+}
+
+void check_declared(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            return;
+
+    exit(IKS_ERROR_UNDECLARED);
+}
+
+void declare(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            exit(IKS_ERROR_DECLARED);
+
+    value->type[current_scope] = type;
+}
+
+void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            exit(IKS_ERROR_DECLARED);
+
+    value->type[current_scope] = type;
+    value->decl_info[current_scope] = class_type;
+}
+
+void declare_function(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            exit(IKS_ERROR_DECLARED);
+
+    value->type[current_scope] = DECL_FUNCTION;
+    function_info->type = type;
+    value->decl_info[current_scope] = function_info;
+}
+
+int check_usage(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] == type)
+            return TRUE;
+
+    return FALSE;
+}
+
+void check_usage_variable(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            if (value->type[scope_stack[i]] < decl_variable(POA_LIT_INT) || value->type[scope_stack[i]] > decl_variable(POA_IDENT))
+                exit(IKS_ERROR_VARIABLE);
+            else if (value->type[scope_stack[i]] != type)
+                exit(IKS_ERROR_WRONG_TYPE);
+}
+
+void check_usage_vector(symbol_t* symbol, int type){
+    id_value_t* value = symbol->value;
+
+    for(int i = 0; i < scope_stack_length; i++)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            if (value->type[scope_stack[i]] < decl_vector(POA_LIT_INT) || value->type[scope_stack[i]] > decl_vector(POA_LIT_BOOL))
+                exit(IKS_ERROR_VECTOR);
+            else if (value->type[scope_stack[i]] != type)
+                exit(IKS_ERROR_WRONG_TYPE);
+}
+
+void check_usage_function(symbol_t* symbol){
+    if (check_usage, DECL_FUNCTION == FALSE)
+        exit(IKS_ERROR_FUNCTION);
+}
+
+void check_usage_class(symbol_t* symbol){
+    if (check_usage, DECL_CLASS == FALSE)
+        exit(IKS_ERROR_CLASS);
+}
+
+void create_params(){
+    function_info = malloc(sizeof(function_info_t));
+    function_info->params_length = 0;
+}
+
+void add_param(symbol_t* symbol, int type){
+    function_info->param_id[function_info->params_length] = symbol;
+    function_info->param_type[function_info->params_length] = type;
+    function_info->params_length++;
 }
 
 
