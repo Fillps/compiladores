@@ -175,7 +175,7 @@ void check_usage_function(comp_tree_t* tree){
             else if (tree->childnodes - 1 > func_info->params_length)
                 excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
             else{
-
+                //TODO verificar se os tipos de argumento estao corretos
             }
             return;
         }
