@@ -13,6 +13,7 @@
 /* Verificação de declarações */
 #define IKS_ERROR_UNDECLARED  1 //identificador não declarado
 #define IKS_ERROR_DECLARED    2 //identificador já declarado
+#define IKS_ERROR_ATTRIBUTE_UNDECLARED   16 //identificador deve ser declarado
 
 /* Uso correto de identificadores */
 #define IKS_ERROR_VARIABLE    3 //identificador deve ser utilizado como variável
@@ -36,6 +37,7 @@
 
 #define SCOPE_SIZE 1000
 #define PARAM_SIZE 100
+#define FIELD_SIZE 100
 #define UNDECLARED 0
 
 typedef struct id_value{
@@ -52,6 +54,12 @@ typedef struct function_info{
     int params_length;
 }function_info_t;
 
+typedef struct class_info{
+    int field_type[FIELD_SIZE];
+    symbol_t* field_id[FIELD_SIZE];
+    int field_length;
+}class_info_t;
+
 void scope_init();
 void start_scope();
 void end_scope();
@@ -60,10 +68,16 @@ void check_declared(symbol_t* symbol, int type);
 void declare(symbol_t* symbol, int type);
 void declare_function(symbol_t* symbol, int type);
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type);
+void declare_class(symbol_t* symbol);
 
 void create_params();
 void add_param(symbol_t* symbol, int type);
+void create_class_fields();
+void class_add_field(symbol_t* symbol, int type);
 
+void check_usage_variable(symbol_t* symbol);
+void check_usage_vector(symbol_t* symbol);
 void check_usage_function(comp_tree_t* tree);
+void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
 
 #endif //COMPILADOR_CC_SEMANTIC_H

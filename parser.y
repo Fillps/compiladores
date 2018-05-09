@@ -101,7 +101,6 @@ comp_tree_t* ast;
 %type <ast>shift
 %type <ast>exp
 %type <ast>var
-%type <ast>pre_var
 %type <ast>exp_lista
 %type <ast>lista_comandos
 %type <ast>for_comando
@@ -169,11 +168,11 @@ literal_char:
 
 /* Novo Tipo */
 novo_tipo:
-    TK_PR_CLASS TK_IDENTIFICADOR '[' campo ']' ';' { declare($2, DECL_CLASS); };
+    TK_PR_CLASS TK_IDENTIFICADOR { create_class_fields(); }'[' campo ']' ';' { declare_class($2); };
 
 campo:
-    encapsulamento tipo TK_IDENTIFICADOR
-    | encapsulamento tipo TK_IDENTIFICADOR ':' campo;
+    encapsulamento tipo TK_IDENTIFICADOR                { class_add_field($3, $2); }
+    | encapsulamento tipo TK_IDENTIFICADOR ':' campo    { class_add_field($3, $2); };
 
 encapsulamento:
     TK_PR_PRIVATE
@@ -286,12 +285,9 @@ atribuicao:
     var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); };
 
 var:
-    pre_var '.' pre_var { $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3); }
-    | pre_var           { $$ = $1; };
-
-pre_var:
-    identificador                { $$ = $1; }
-    | identificador '[' exp ']'  { $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, $1, $3); };
+    identificador                       { $$ = $1; check_usage_variable($1->value->symbol); }
+    | identificador '[' exp ']'         { $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, $1, $3); check_usage_vector($1->value->symbol); }
+    | identificador '.' identificador   { $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3); check_usage_attribute($1->value->symbol, $3->value->symbol); };
 
 
 exp: 
