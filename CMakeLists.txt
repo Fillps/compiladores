@@ -16,10 +16,10 @@ ADD_EXECUTABLE(main
   src/cc_dict.c
   src/cc_list.c
   src/cc_tree.c
-)
+        include/cc_semantic.h src/cc_semantic.c)
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 
-ADD_EXECUTABLE(cc_dict_main_example src/cc_dict.c src/cc_dict_main_example.c)
+ADD_EXECUTABLE(cc_dict_main_example src/cc_dict.c src/cc_dict_main_example.c include/cc_semantic.h src/cc_semantic.c)
 
 ENABLE_TESTING()
 SET(i 0)
