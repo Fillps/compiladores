@@ -190,16 +190,16 @@ tipo:
 var_global:
     static_opc tipo TK_IDENTIFICADOR vetor_global ';'               {
                                                                         if($4 == FALSE)
-                                                                            declare($3, decl_vector($2));
-                                                                        else
                                                                             declare($3, decl_variable($2));
+                                                                        else
+                                                                            declare($3, decl_vector($2));
                                                                     }
     | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';' {
                                                                         check_declared($2, DECL_CLASS);
                                                                         if($4 == FALSE)
-                                                                            declare($3, decl_vector($2->token));
-                                                                        else
                                                                             declare($3, decl_variable($2->token));
+                                                                        else
+                                                                            declare($3, decl_vector($2->token));
                                                                     };
 
 static_opc:
@@ -261,7 +261,7 @@ comando_simples:
     | output ';'                    { $$ = $1; }
     | ret_break_cont ';'            { $$ = $1; }
     | controle_fluxo ';'            { $$ = $1; }
-    | corpo ';'                     { $$ = createASTUnaryNode(AST_BLOCO, NULL, $1); }
+    | corpo ';'                     { if ($1) $$ = createASTUnaryNode(AST_BLOCO, NULL, $1); else $$ = NULL; }
     | case                          { $$ = $1; }
     | pipe ';'                      { $$ = $1; }
     | shift ';'                     { $$ = $1; };

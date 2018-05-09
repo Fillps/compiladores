@@ -185,9 +185,16 @@ void check_usage_variable(symbol_t* symbol){
 
     for(int i = 0; i < scope_stack_length; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            if (value->type[scope_stack[i]] < decl_variable(POA_LIT_INT) || value->type[scope_stack[i]] > decl_variable(POA_IDENT))
-                variable_error(symbol);
+            if (value->type[scope_stack[i]] >= decl_vector(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_vector(POA_LIT_BOOL))
+                vector_error(symbol);
+            else if (value->type[scope_stack[i]] == DECL_FUNCTION)
+                function_error(symbol);
+            else if (value->type[scope_stack[i]] == DECL_CLASS)
+                class_error(symbol);
+            else
+                return;
 
+    undeclared_error(symbol);
 }
 
 void check_usage_vector(symbol_t* symbol){
@@ -195,8 +202,16 @@ void check_usage_vector(symbol_t* symbol){
 
     for(int i = 0; i < scope_stack_length; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            if (value->type[scope_stack[i]] < decl_vector(POA_LIT_INT) || value->type[scope_stack[i]] > decl_vector(POA_LIT_BOOL))
-                vector_error(symbol);
+            if (value->type[scope_stack[i]] >= decl_variable(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_variable(POA_IDENT))
+                variable_error(symbol);
+            else if (value->type[scope_stack[i]] == DECL_FUNCTION)
+                function_error(symbol);
+            else if (value->type[scope_stack[i]] == DECL_CLASS)
+                class_error(symbol);
+            else
+                return;
+
+    undeclared_error(symbol);
 }
 
 void check_usage_function(comp_tree_t* tree){
