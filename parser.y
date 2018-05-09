@@ -6,6 +6,7 @@
 #include "cc_misc.h"
 #include "cc_tree.h"
 #include "cc_ast.h"
+#include "cc_semantic.h"
 
 comp_tree_t* ast;
 }
@@ -330,11 +331,11 @@ input:
 
 /* Chamada de função */
 chamada_funcao:
-    identificador '(' chamada_parametros ')' { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $3); }
-    | identificador '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); };
+    identificador '(' chamada_parametros ')' { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $3); update_childs($$); check_usage_function($$); }
+    | identificador '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); check_usage_function($$); };
 
 chamada_parametros:
-    exp ',' chamada_parametros  { $$ = $1; tree_insert_node($1, $3); }
+    exp ',' chamada_parametros  { $$ = $1; tree_make_next($1, $3); }
     | exp                       { $$ = $1; };
 
 /* Comandos de Shift */

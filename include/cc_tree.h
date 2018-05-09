@@ -108,4 +108,7 @@ void build_gv(comp_tree_t* tree);
 void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node);
 
 comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type);
+void tree_make_next(comp_tree_t* tree, comp_tree_t* next);
+void update_childs(comp_tree_t* tree);
+
 #endif //CC_TREE_H_

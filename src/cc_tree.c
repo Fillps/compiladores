@@ -267,4 +267,21 @@ comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type){
     return pipes;
 }
 
+void tree_make_next(comp_tree_t* tree, comp_tree_t* next){
+    tree->next = next;
+    next->prev = tree;
+}
+
+void update_childs(comp_tree_t* tree){
+    comp_tree_t* last = NULL;
+    comp_tree_t* child = tree->first;
+    int n_childs = 0;
+    while (child){
+        last = child;
+        child = child->next;
+        n_childs++;
+    }
+    tree->childnodes = n_childs;
+    tree->last = last;
+}
 

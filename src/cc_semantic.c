@@ -170,10 +170,14 @@ void check_usage_function(comp_tree_t* tree){
     for(int i = 0; i < scope_stack_length; i++)
         if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
             function_info_t* func_info =  id_value->decl_info[scope_stack[i]];
-            if (func_info->params_length < tree->childnodes - 1)
+            if (tree->childnodes - 1 < func_info->params_length)
                 missing_args_error(symbol, func_info->params_length, tree->childnodes - 1);
-            else if (func_info->params_length > tree->childnodes - 1)
+            else if (tree->childnodes - 1 > func_info->params_length)
                 excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
+            else{
+
+            }
+            return;
         }
         else if (id_value->type[scope_stack[i]] != UNDECLARED)
             function_error(symbol);
@@ -194,5 +198,5 @@ void create_params(){
 void add_param(symbol_t* symbol, int type){
     function_info->param_id[function_info->params_length] = symbol;
     function_info->param_type[function_info->params_length] = type;
-    function_info->params_length++;
+    function_info->params_length = function_info->params_length + 1;
 }
