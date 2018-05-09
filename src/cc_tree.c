@@ -74,9 +74,6 @@ void tree_insert_node(comp_tree_t *tree, comp_tree_t *node){
 	}
 	++tree->childnodes;
 
-	fprintf (intfp, "node_%p [label=\"\"]\n", tree);
-	fprintf (intfp, "node_%p [label=\"\"]\n", node);
-	fprintf (intfp, "node_%p -> node_%p\n", tree, node);
 	comp_tree_last = tree;
 }
 
@@ -229,9 +226,6 @@ void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node){
     }
     ++tree->childnodes;
 
-    fprintf (intfp, "node_%p [label=\"\"]\n", tree);
-    fprintf (intfp, "node_%p [label=\"\"]\n", node);
-    fprintf (intfp, "node_%p -> node_%p\n", tree, node);
     comp_tree_last = tree;
 }
 /***

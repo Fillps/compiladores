@@ -114,7 +114,7 @@ comp_tree_t* ast;
 /* Regras (e ações) da gramática */
 
 programa:
-    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); build_gv($$); ast = $$; }
+    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; }
     | %empty    { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };
 
 comandos:
