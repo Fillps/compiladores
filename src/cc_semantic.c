@@ -151,8 +151,6 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
 
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
-    
-    printf("scope=%i - scope_stack=%i - type=%i", current_scope, scope_stack[current_scope], value->type[scope_stack[current_scope]]);
 
     if (value->type[scope_stack[current_scope]] != UNDECLARED)
         declared_error(symbol);
@@ -195,7 +193,7 @@ void check_usage_variable(symbol_t* symbol){
                 class_error(symbol);
             else
                 return;
-  
+
     undeclared_error(symbol);
 }
 
