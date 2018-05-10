@@ -11,6 +11,7 @@ class_info_t* class_info;
 int scope_stack[DICT_SIZE];
 int *sp;
 int current_scope;
+int scope_counter;
 int scope_stack_length;
 
 #define push(sp, n) (*((sp)++) = (n))
@@ -41,19 +42,22 @@ static inline char *__type_description (int type)
 void scope_init(){
     sp = scope_stack;
     current_scope = 0;
-    push(sp, current_scope);
+    scope_counter = 0;	
+    push(sp, scope_counter);
     scope_stack_length = 1;
 }
 
 void start_scope(){
-    current_scope++;
-    push(sp, current_scope);
+    scope_counter++;
+    push(sp, scope_counter);
     scope_stack_length++;
+    current_scope = scope_counter;
 }
 
 void end_scope(){
     pop(sp);
     scope_stack_length--;
+    current_scope = scope_stack[scope_stack_length - 1];
 }
 
 void undeclared_error(symbol_t* symbol){
@@ -119,7 +123,7 @@ void attribute_undeclared_error(symbol_t* class, symbol_t* attribute){
 void check_declared(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length - 1; i >= 0 ; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             return;
 
@@ -129,11 +133,8 @@ void check_declared(symbol_t* symbol, int type){
 void declare(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    for(int i = scope_stack_length-1; i >= 0; i--)
-        if (value->type[scope_stack[i]] != UNDECLARED)
-            declared_error(symbol);
-        else
-            break;
+    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+        declared_error(symbol);
 
     value->type[current_scope] = type;
 }
@@ -141,11 +142,8 @@ void declare(symbol_t* symbol, int type){
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     id_value_t* value = symbol->value;
 
-    for(int i = scope_stack_length-1; i >= 0; i++)
-        if (value->type[scope_stack[i]] != UNDECLARED)
-            declared_error(symbol);
-        else
-            break;
+    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+        declared_error(symbol);
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
@@ -153,10 +151,11 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
 
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
+    
+    printf("scope=%i - scope_stack=%i - type=%i", current_scope, scope_stack[current_scope], value->type[scope_stack[current_scope]]);
 
-    for(int i = 0; i < scope_stack_length; i++)
-        if (value->type[scope_stack[i]] != UNDECLARED)
-            declared_error(symbol);
+    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+        declared_error(symbol);
 
     value->type[current_scope] = DECL_FUNCTION;
     function_info->type = type;
@@ -166,9 +165,8 @@ void declare_function(symbol_t* symbol, int type){
 void declare_class(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
-        if (value->type[scope_stack[i]] != UNDECLARED)
-            declared_error(symbol);
+    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+        declared_error(symbol);
 
     value->type[current_scope] = DECL_CLASS;
     value->decl_info[current_scope] = class_info;
@@ -177,7 +175,7 @@ void declare_class(symbol_t* symbol){
 int check_usage(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] == type)
             return TRUE;
 
@@ -187,7 +185,7 @@ int check_usage(symbol_t* symbol, int type){
 void check_usage_variable(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    for(int i = scope_stack_length; i > 0; i--)
+    for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_vector(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_vector(POA_LIT_BOOL))
                 vector_error(symbol);
@@ -197,14 +195,14 @@ void check_usage_variable(symbol_t* symbol){
                 class_error(symbol);
             else
                 return;
-
+  
     undeclared_error(symbol);
 }
 
 void check_usage_vector(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_variable(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_variable(POA_IDENT))
                 variable_error(symbol);
@@ -222,7 +220,7 @@ void check_usage_function(comp_tree_t* tree){
     symbol_t* symbol = tree->first->value->symbol;
     id_value_t* id_value = (id_value_t *) symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length - 1; i >= 0; i--)
         if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
             function_info_t* func_info =  id_value->decl_info[scope_stack[i]];
             if (tree->childnodes - 1 < func_info->params_length)
@@ -248,12 +246,12 @@ void check_usage_class(symbol_t* symbol){
 void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
     id_value_t* id_value = (id_value_t *) class_var->value;
 
-    for(int i = 0; i < scope_stack_length; i++) //procura a declaracao da variavel de classe
+    for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
             symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
             id_value_t* class_value = (id_value_t*)class->value;
 
-            for(int j = 0; j < scope_stack_length; j++) // procura a declaracao de classe
+            for(int j = scope_stack_length - 1; j >= 0; j--) // procura a declaracao de classe
                 if (class_value->type[scope_stack[j]] == DECL_CLASS){
                     class_info_t* cl_info =  class_value->decl_info[scope_stack[j]];
 
