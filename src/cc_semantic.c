@@ -129,9 +129,11 @@ void check_declared(symbol_t* symbol, int type){
 void declare(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length-1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             declared_error(symbol);
+        else
+            break;
 
     value->type[current_scope] = type;
 }
@@ -139,9 +141,11 @@ void declare(symbol_t* symbol, int type){
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length-1; i >= 0; i++)
         if (value->type[scope_stack[i]] != UNDECLARED)
             declared_error(symbol);
+        else
+            break;
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
@@ -183,7 +187,7 @@ int check_usage(symbol_t* symbol, int type){
 void check_usage_variable(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    for(int i = 0; i < scope_stack_length; i++)
+    for(int i = scope_stack_length; i > 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_vector(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_vector(POA_LIT_BOOL))
                 vector_error(symbol);
@@ -289,4 +293,3 @@ void class_add_field(symbol_t* symbol, int type){
     class_info->field_type[class_info->field_length] = type;
     class_info->field_length++;
 }
-
