@@ -42,7 +42,7 @@ static inline char *__type_description (int type)
 void scope_init(){
     sp = scope_stack;
     current_scope = 0;
-    scope_counter = 0;	
+    scope_counter = 0;
     push(sp, scope_counter);
     scope_stack_length = 1;
 }
@@ -218,6 +218,18 @@ void check_usage_function(comp_tree_t* tree){
     symbol_t* symbol = tree->first->value->symbol;
     id_value_t* id_value = (id_value_t *) symbol->value;
 
+    comp_tree_t* params_tree;
+    symbol_t* param;
+    id_value_t* param_value;
+
+    if(tree->childnodes-1 > 0){
+        params_tree = tree->first->next;
+        for(int i = 0; i < tree->childnodes - 2; i++)
+            params_tree = params_tree->next;
+        param = params_tree->value->symbol;
+        param_value = (id_value_t *) param->value;
+    }
+
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
             function_info_t* func_info =  id_value->decl_info[scope_stack[i]];
@@ -226,7 +238,20 @@ void check_usage_function(comp_tree_t* tree){
             else if (tree->childnodes - 1 > func_info->params_length)
                 excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
             else{
-                //TODO verificar se os tipos de argumento estao corretos
+                for(int c = tree->childnodes-2; c >= 0; c--){     //percorre todos os parâmetos
+                    int j;
+                    for(j = scope_stack_length - 1; j>=0; j--)    //busca a declaração do parametro fornecido no escopo mais próximo
+                        if(param_value->type[scope_stack[j]] != UNDECLARED)
+                            break;
+                    int func_param_type = decl_variable(func_info->param_type[c]);
+                    if(param_value->type[scope_stack[j]] != func_param_type)
+                        wrong_type_error(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
+
+                    //passa para o parametro anterior fornecido na chamada
+                    params_tree = params_tree->prev;
+                    param = params_tree->value->symbol;
+                    param_value = (id_value_t *) param->value;
+                }
             }
             return;
         }
