@@ -103,8 +103,8 @@ void wrong_type_error(symbol_t* symbol, char* correct_type, char* wrong_type){
 }
 
 void different_type_warning(symbol_t* symbol, char* correct_type, char* given_type){
-    fprintf (stderr, "WARNING**(line: %d, id: %s) \'%s\' type was supposed to be \'%s\', but was found \'%s\'.\n",
-             symbol->line, symbol->lexeme, symbol->lexeme, correct_type, given_type);
+    fprintf (stderr, "WARNING**(line: %d, id: %s) \'%s\'(%s) type was converted to \'%s\'.\n",
+             symbol->line, symbol->lexeme, symbol->lexeme, given_type, correct_type);
 }
 
 void missing_args_error(symbol_t* symbol, int expected, int found){
@@ -219,6 +219,49 @@ void check_usage_vector(symbol_t* symbol){
     undeclared_error(symbol);
 }
 
+void check_param_compatibility(symbol_t* param, function_info_t* func_info, int param_id, int scope){
+    int func_param_type = func_info->param_type[param_id] + DECL_FUNCTION;
+    int found_param_type = param->token + DECL_FUNCTION;
+    id_value_t* param_value = (id_value_t *) param->value;
+
+    if(param->token  == POA_IDENT){
+        if(param_value->type[scope_stack[scope]] != func_param_type){
+            if(func_info->param_type[param_id] == POA_LIT_FLOAT && param_value->type[scope_stack[scope]] == POA_LIT_INT + DECL_FUNCTION){
+                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+            }
+            else if(func_info->param_type[param_id] == POA_LIT_FLOAT && param_value->type[scope_stack[scope]] == POA_LIT_BOOL + DECL_FUNCTION){
+                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+            }
+            else if(func_info->param_type[param_id] == POA_LIT_INT && param_value->type[scope_stack[scope]] == POA_LIT_BOOL + DECL_FUNCTION){
+                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+            }
+            else if(func_info->param_type[param_id] == POA_LIT_STRING && param_value->type[scope_stack[scope]] == POA_LIT_CHAR + DECL_FUNCTION){
+                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+            }
+            else{
+                wrong_type_error(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+            }
+        }
+    }
+    else if(param->token != func_info->param_type[param_id]){
+        if(func_info->param_type[param_id] == POA_LIT_FLOAT && param->token == POA_LIT_INT){
+            different_type_warning(param, __type_description(func_param_type), __type_description(found_param_type));
+        }
+        else if(func_info->param_type[param_id] == POA_LIT_FLOAT && param->token == POA_LIT_BOOL){
+            different_type_warning(param, __type_description(func_param_type), __type_description(found_param_type));
+        }
+        else if(func_info->param_type[param_id] == POA_LIT_INT && param->token == POA_LIT_BOOL){
+            different_type_warning(param, __type_description(func_param_type), __type_description(found_param_type));
+        }
+        else if(func_info->param_type[param_id] == POA_LIT_STRING && param->token == POA_LIT_CHAR){
+            different_type_warning(param, __type_description(func_param_type), __type_description(found_param_type));
+        }
+        else{
+            wrong_type_error(param, __type_description(func_param_type), __type_description(found_param_type));
+        }
+    }
+}
+
 void check_usage_function(comp_tree_t* tree){
     symbol_t* symbol = tree->first->value->symbol;
     id_value_t* id_value = (id_value_t *) symbol->value;
@@ -248,43 +291,8 @@ void check_usage_function(comp_tree_t* tree){
                     for(j = scope_stack_length - 1; j >= 0; j--)    //busca a declaração do parametro fornecido no escopo mais próximo
                         if(param_value->type[scope_stack[j]] != UNDECLARED)
                             break;
-                    int func_param_type = decl_variable(func_info->param_type[c]);
-                    if(param->token  == POA_IDENT){
-                        if(param_value->type[scope_stack[j]] != func_param_type){
-                            if(func_info->param_type[c] == POA_LIT_FLOAT && param_value->type[scope_stack[j]] == POA_LIT_INT+2){
-                                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
-                            }
-                            else if(func_info->param_type[c] == POA_LIT_FLOAT && param_value->type[scope_stack[j]] == POA_LIT_BOOL+2){
-                                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
-                            }
-                            else if(func_info->param_type[c] == POA_LIT_INT && param_value->type[scope_stack[j]] == POA_LIT_BOOL+2){
-                                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
-                            }
-                            else if(func_info->param_type[c] == POA_LIT_STRING && param_value->type[scope_stack[j]] == POA_LIT_CHAR+2){
-                                different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
-                            }
-                            else{
-                                wrong_type_error(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[j]]));
-                            }
-                        }
-                    }
-                    else if((param->token + 2) != func_param_type){
-                        if(func_info->param_type[c] == POA_LIT_FLOAT && param->token == POA_LIT_INT){
-                            different_type_warning(param, __type_description(func_param_type), __type_description(param->token+2));
-                        }
-                        else if(func_info->param_type[c] == POA_LIT_FLOAT && param->token == POA_LIT_BOOL){
-                            different_type_warning(param, __type_description(func_param_type), __type_description(param->token+2));
-                        }
-                        else if(func_info->param_type[c] == POA_LIT_INT && param->token == POA_LIT_BOOL){
-                            different_type_warning(param, __type_description(func_param_type), __type_description(param->token+2));
-                        }
-                        else if(func_info->param_type[c] == POA_LIT_STRING && param->token == POA_LIT_CHAR){
-                            different_type_warning(param, __type_description(func_param_type), __type_description(param->token+2));
-                        }
-                        else{
-                            wrong_type_error(param, __type_description(func_param_type), __type_description(param->token+2));
-                        }
-                    }
+
+                    check_param_compatibility(param, func_info, c, j);
 
                     //passa para o parametro anterior fornecido na chamada
                     params_tree = params_tree->prev;
