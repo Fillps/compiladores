@@ -138,7 +138,7 @@ void check_declared(symbol_t* symbol, int type){
 void declare(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+    if (value->type[scope_stack[scope_stack_length-1]] != UNDECLARED)
         declared_error(symbol);
 
     value->type[current_scope] = type;
