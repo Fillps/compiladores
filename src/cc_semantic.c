@@ -138,7 +138,7 @@ void check_declared(symbol_t* symbol, int type){
 void declare(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    if (value->type[scope_stack[scope_stack_length-1]] != UNDECLARED)
+    if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
     value->type[current_scope] = type;
@@ -147,7 +147,7 @@ void declare(symbol_t* symbol, int type){
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     id_value_t* value = symbol->value;
 
-    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+    if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
     value->type[current_scope] = type;
@@ -157,7 +157,7 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+    if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
     value->type[current_scope] = DECL_FUNCTION;
@@ -168,7 +168,7 @@ void declare_function(symbol_t* symbol, int type){
 void declare_class(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    if (value->type[scope_stack[current_scope]] != UNDECLARED)
+    if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
     value->type[current_scope] = DECL_CLASS;
