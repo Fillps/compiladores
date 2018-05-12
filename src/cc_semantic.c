@@ -102,6 +102,12 @@ void wrong_type_error(symbol_t* symbol, char* correct_type, char* wrong_type){
     exit(IKS_ERROR_WRONG_TYPE);
 }
 
+void wrong_type_args_error(symbol_t* symbol, char* correct_type, char* wrong_type){
+    fprintf (stderr, "IKS_ERROR_WRONG_TYPE_ARGS(line: %d, id: %s) \'%s\' type was supposed to be \'%s\', but was found \'%s\'.\n",
+             symbol->line, symbol->lexeme, symbol->lexeme, correct_type, wrong_type);
+    exit(IKS_ERROR_WRONG_TYPE_ARGS);
+}
+
 void different_type_warning(symbol_t* symbol, char* correct_type, char* given_type){
     fprintf (stderr, "WARNING**(line: %d, id: %s) \'%s\'(%s) type was converted to \'%s\'.\n",
              symbol->line, symbol->lexeme, symbol->lexeme, given_type, correct_type);
@@ -123,6 +129,23 @@ void attribute_undeclared_error(symbol_t* class, symbol_t* attribute){
     fprintf (stderr, "IKS_ERROR_ATTRIBUTE_UNDECLARED(line: %d, id: %s) \'%s\' is not a attribute of the class \'%s\'.\n",
              attribute->line, attribute->lexeme, attribute->lexeme, class->lexeme);
     exit(IKS_ERROR_ATTRIBUTE_UNDECLARED);
+}
+
+void wrong_type_assignment(symbol_t* var, int correct_type, int wrong_type){
+    switch (wrong_type) {
+        case decl_variable(POA_LIT_STRING):
+            fprintf (stderr, "IKS_ERROR_STRING_TO_X(line: %d, id: %s) \'%s\' type is \'%s\', but was given \'%s\'.\n",
+                     var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+            exit(IKS_ERROR_STRING_TO_X);
+        case decl_variable(POA_LIT_CHAR):
+            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) \'%s\' type is \'%s\', but was given \'%s\'.\n",
+                     var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+            exit(IKS_ERROR_CHAR_TO_X);
+        default:
+            fprintf (stderr, "IKS_ERROR_WRONG_TYPE(line: %d, id: %s) \'%s\' type is \'%s\', but was given \'%s\'.\n",
+                     var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+            exit(IKS_ERROR_WRONG_TYPE);
+    }
 }
 
 void check_declared(symbol_t* symbol, int type){
@@ -239,7 +262,7 @@ void check_param_compatibility(symbol_t* param, function_info_t* func_info, int 
                 different_type_warning(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
             }
             else{
-                wrong_type_error(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
+                wrong_type_args_error(param, __type_description(func_param_type), __type_description(param_value->type[scope_stack[scope]]));
             }
         }
     }
@@ -257,7 +280,7 @@ void check_param_compatibility(symbol_t* param, function_info_t* func_info, int 
             different_type_warning(param, __type_description(func_param_type), __type_description(found_param_type));
         }
         else{
-            wrong_type_error(param, __type_description(func_param_type), __type_description(found_param_type));
+            wrong_type_args_error(param, __type_description(func_param_type), __type_description(found_param_type));
         }
     }
 }
@@ -360,4 +383,29 @@ void class_add_field(symbol_t* symbol, int type){
     class_info->field_id[class_info->field_length] = symbol;
     class_info->field_type[class_info->field_length] = type;
     class_info->field_length++;
+}
+
+void check_var_assignment(symbol_t* var, symbol_t* symbol){
+    int var_type = 0;
+    int val_type = 0;
+    id_value_t* id_var = var->value;
+
+    for(int i = scope_stack_length - 1; i >= 0; i--)
+        if(id_var->type[scope_stack[i]] != UNDECLARED){
+            var_type = id_var->type[scope_stack[i]];
+            break;
+        }
+
+    id_value_t* id_val = symbol->value;
+    switch (symbol->token) {
+      case POA_IDENT:
+          for(int i = scope_stack_length - 1; i >= 0; i--)
+              if(id_var->type[scope_stack[i]] != UNDECLARED){
+                  val_type = id_val->type[scope_stack[i]];
+                  break;
+              }
+    }
+
+    if(var_type != val_type)
+        wrong_type_assignment(var, var_type, val_type);
 }

@@ -29,6 +29,10 @@
 #define IKS_ERROR_EXCESS_ARGS     10 //sobram argumentos
 #define IKS_ERROR_WRONG_TYPE_ARGS 11 //argumentos incompatívei
 
+/* Tipos e atribuições */
+#define IKS_ERROR_STRING_TO_X   7   //variável não string recebe string
+#define IKS_ERROR_CHAR_TO_X     8   //variável não char recebe char
+
 /* Tipos de declaracao de indentificadores */
 #define DECL_CLASS          1
 #define DECL_FUNCTION       2
@@ -79,5 +83,6 @@ void check_usage_variable(symbol_t* symbol);
 void check_usage_vector(symbol_t* symbol);
 void check_usage_function(comp_tree_t* tree);
 void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
+void check_var_assignment(symbol_t* var, symbol_t* symbol);
 
 #endif //COMPILADOR_CC_SEMANTIC_H
