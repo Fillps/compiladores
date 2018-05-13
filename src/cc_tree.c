@@ -184,12 +184,22 @@ void set_node_value_type(comp_tree_t* node, int value_type){
 }
 
 void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2){
-		if(value_type_1 == decl_variable(POA_LIT_FLOAT) && value_type_2 == decl_variable(POA_LIT_INT))
+		if(value_type_1 == decl_variable(POA_LIT_STRING) || value_type_2 == decl_variable(POA_LIT_STRING))
+				root->value->value_type = decl_variable(POA_LIT_STRING);
+		else if(value_type_1 == decl_variable(POA_LIT_CHAR) || value_type_2 == decl_variable(POA_LIT_CHAR))
+				root->value->value_type = decl_variable(POA_LIT_CHAR);
+		else if(value_type_1 == decl_variable(POA_LIT_FLOAT) || value_type_2 == decl_variable(POA_LIT_FLOAT))
+				root->value->value_type = decl_variable(POA_LIT_FLOAT);
+		else if(value_type_1 == decl_variable(POA_LIT_INT) || value_type_2 == decl_variable(POA_LIT_INT))
+				root->value->value_type = decl_variable(POA_LIT_INT);
+		else
+				root->value->value_type = value_type_1;
+		/*if(value_type_1 == decl_variable(POA_LIT_FLOAT) && value_type_2 == decl_variable(POA_LIT_INT))
 				root->value->value_type = value_type_1;
 		else if(value_type_1 == decl_variable(POA_LIT_INT) && value_type_2 == decl_variable(POA_LIT_FLOAT))
 				root->value->value_type = value_type_2;
 		else
-				root->value->value_type = value_type_1;
+				root->value->value_type = value_type_1;*/
 }
 
 void connect_all_childs(comp_tree_t* tree){
