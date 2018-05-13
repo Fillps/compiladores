@@ -1,15 +1,15 @@
-// Copyright (c) 2016 Lucas Nodari 
+// Copyright (c) 2016 Lucas Nodari
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -139,6 +139,7 @@ comp_tree_t* createASTNode(int type, symbol_t *token){
     nodeAST* nodeAST = calloc(1, sizeof(struct nodeAST));
 
     nodeAST->type = type;
+		nodeAST->value_type = 0;
     nodeAST->symbol = token;
 
     return tree_make_node(nodeAST);
@@ -176,6 +177,19 @@ comp_tree_t* createASTQuaternaryNode(int type, symbol_t* token, comp_tree_t* nod
     tree_insert_node(newnode,node4);
 
     return newnode;
+}
+
+void set_node_value_type(comp_tree_t* node, int value_type){
+		node->value->value_type = value_type;
+}
+
+void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2){
+		if(value_type_1 == decl_variable(POA_LIT_FLOAT) && value_type_2 == decl_variable(POA_LIT_INT))
+				root->value->value_type = value_type_1;
+		else if(value_type_1 == decl_variable(POA_LIT_INT) && value_type_2 == decl_variable(POA_LIT_FLOAT))
+				root->value->value_type = value_type_2;
+		else
+				root->value->value_type = value_type_1;
 }
 
 void connect_all_childs(comp_tree_t* tree){
@@ -284,4 +298,3 @@ void update_childs(comp_tree_t* tree){
     tree->childnodes = n_childs;
     tree->last = last;
 }
-

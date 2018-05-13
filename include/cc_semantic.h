@@ -85,4 +85,7 @@ void check_usage_function(comp_tree_t* tree);
 void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
 void check_var_assignment(symbol_t* var, symbol_t* symbol);
 
+int get_var_type(symbol_t* var);
+int get_func_type(comp_tree_t* tree);
+
 #endif //COMPILADOR_CC_SEMANTIC_H

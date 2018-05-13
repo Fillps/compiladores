@@ -285,14 +285,13 @@ void check_param_compatibility(symbol_t* param, function_info_t* func_info, int 
     }
 }
 
-void check_usage_function(comp_tree_t* tree){
+/*void check_usage_function(comp_tree_t* tree){
     symbol_t* symbol = tree->first->value->symbol;
     id_value_t* id_value = (id_value_t *) symbol->value;
 
     comp_tree_t* params_tree;
     symbol_t* param;
     id_value_t* param_value;
-
     if(tree->childnodes-1 > 0){
         params_tree = tree->first->next;
         for(int i = 0; i < tree->childnodes - 2; i++)
@@ -321,6 +320,47 @@ void check_usage_function(comp_tree_t* tree){
                     params_tree = params_tree->prev;
                     param = params_tree->value->symbol;
                     param_value = (id_value_t *) param->value;
+                }
+            }
+            return;
+        }
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
+            function_error(symbol);
+
+    undeclared_error(symbol);
+}*/
+void check_usage_function(comp_tree_t* tree){
+    symbol_t* symbol = tree->first->value->symbol;
+    id_value_t* id_value = (id_value_t *) symbol->value;
+    comp_tree_t* params_tree;
+    symbol_t* param;
+    int param_type;
+    
+    if(tree->childnodes-1 > 0){
+        params_tree = tree->first->next;
+        for(int i = 0; i < tree->childnodes - 2; i++)
+            params_tree = params_tree->next;
+        param = params_tree->value->symbol;
+        param_type = params_tree->value->value_type;
+    }
+
+    for(int i = scope_stack_length - 1; i >= 0; i--)
+        if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
+            function_info_t* func_info =  id_value->decl_info[scope_stack[i]];
+            if (tree->childnodes - 1 < func_info->params_length)
+                missing_args_error(symbol, func_info->params_length, tree->childnodes - 1);
+            else if (tree->childnodes - 1 > func_info->params_length)
+                excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
+            else{
+                for(int c = tree->childnodes-2; c >= 0; c--){     //percorre todos os parâmetos
+                    if(param_type != decl_variable(func_info->param_type[c]))
+                        wrong_type_args_error(param, __type_description(decl_variable(func_info->param_type[c])),
+                                              __type_description(param_type));
+
+                    //passa para o parametro anterior fornecido na chamada
+                    params_tree = params_tree->prev;
+                    param = params_tree->value->symbol;
+                    param_type = params_tree->value->value_type;
                 }
             }
             return;
@@ -385,10 +425,41 @@ void class_add_field(symbol_t* symbol, int type){
     class_info->field_length++;
 }
 
+int get_var_type(symbol_t* var){
+    id_value_t* id_var = var->value;
+    int var_type;
+
+    for(int i = scope_stack_length - 1; i >= 0; i--)
+        if(id_var->type[scope_stack[i]] != UNDECLARED){
+            var_type = id_var->type[scope_stack[i]];
+            break;
+        }
+    printf("tipo da variável: %s (%s)\n", var->lexeme, __type_description(var_type));
+    return var_type;
+}
+
+int get_func_type(comp_tree_t* tree){
+    symbol_t* symbol = tree->first->value->symbol;
+    id_value_t* id_value = (id_value_t *) symbol->value;
+    int func_type = 0;
+
+    for(int i = scope_stack_length - 1; i >= 0; i--)
+        if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
+            function_info_t* func_info = id_value->decl_info[scope_stack[i]];
+            func_type = func_info->type;
+        }
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
+            function_error(symbol);
+
+    printf("tipo da função: %s (%s)\n", symbol->lexeme, __type_description(func_type));
+    return func_type;
+}
+
 void check_var_assignment(symbol_t* var, symbol_t* symbol){
-    int var_type = 0;
+    /*int var_type = 0;
     int val_type = 0;
     id_value_t* id_var = var->value;
+
 
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if(id_var->type[scope_stack[i]] != UNDECLARED){
@@ -407,5 +478,5 @@ void check_var_assignment(symbol_t* var, symbol_t* symbol){
     }
 
     if(var_type != val_type)
-        wrong_type_assignment(var, var_type, val_type);
+        wrong_type_assignment(var, var_type, val_type);*/
 }

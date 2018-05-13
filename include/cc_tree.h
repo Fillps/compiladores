@@ -1,25 +1,28 @@
-// Copyright (c) 2016 Lucas Nodari 
+// Copyright (c) 2016 Lucas Nodari
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef CC_TREE_H_
 #define CC_TREE_H_
+#define DECL_FUNCTION       2
+#define decl_variable(type) DECL_FUNCTION + type            // onde type = POA_LIT_INT, POA_LIT_FLOAT...
 
 #include "cc_misc.h"
 
 typedef struct nodeAST{
     int type;
+    int value_type;
     symbol_t *symbol;
 }nodeAST;
 
@@ -110,5 +113,8 @@ void tree_insert_node_as_second_child(comp_tree_t *tree, comp_tree_t *node);
 comp_tree_t* tree_finish_pipe(comp_tree_t* func, comp_tree_t* pipes, int type);
 void tree_make_next(comp_tree_t* tree, comp_tree_t* next);
 void update_childs(comp_tree_t* tree);
+
+void set_node_value_type(comp_tree_t* node, int value_type);
+void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2);
 
 #endif //CC_TREE_H_
