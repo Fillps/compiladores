@@ -282,7 +282,7 @@ var_valor:
 
 /* Atribuição */
 atribuicao:
-    var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); check_var_assignment($1->value->symbol, $3->value->symbol); };
+    var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); check_var_assignment($1->value->symbol, $3); };
 
 var:
     identificador                       { $$ = $1; check_usage_variable($1->value->symbol); }
