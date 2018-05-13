@@ -379,12 +379,11 @@ int get_func_type(comp_tree_t* tree){
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
             function_info_t* func_info = id_value->decl_info[scope_stack[i]];
-            func_type = func_info->type;
+            func_type = decl_variable(func_info->type);
         }
         else if (id_value->type[scope_stack[i]] != UNDECLARED)
             function_error(symbol);
 
-    printf("tipo da função: %s (%s)\n", symbol->lexeme, __type_description(func_type));
     return func_type;
 }
 

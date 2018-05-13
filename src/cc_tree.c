@@ -194,12 +194,6 @@ void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2){
 				root->value->value_type = decl_variable(POA_LIT_INT);
 		else
 				root->value->value_type = value_type_1;
-		/*if(value_type_1 == decl_variable(POA_LIT_FLOAT) && value_type_2 == decl_variable(POA_LIT_INT))
-				root->value->value_type = value_type_1;
-		else if(value_type_1 == decl_variable(POA_LIT_INT) && value_type_2 == decl_variable(POA_LIT_FLOAT))
-				root->value->value_type = value_type_2;
-		else
-				root->value->value_type = value_type_1;*/
 }
 
 void connect_all_childs(comp_tree_t* tree){
