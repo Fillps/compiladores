@@ -14,7 +14,7 @@
 #define IKS_ERROR_UNDECLARED  1 //identificador não declarado
 #define IKS_ERROR_DECLARED    2 //identificador já declarado
 #define IKS_ERROR_ATTRIBUTE_UNDECLARED   16 //identificador deve ser declarado
-
+#define IKS_ERROR_CLASS_UNDDECLARED 17
 /* Uso correto de identificadores */
 #define IKS_ERROR_VARIABLE    3 //identificador deve ser utilizado como variável
 #define IKS_ERROR_VECTOR      4 //identificador deve ser utilizado como vetor

@@ -213,6 +213,7 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
 
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
+    
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
