@@ -43,6 +43,7 @@
 #define PARAM_SIZE 100
 #define FIELD_SIZE 100
 #define UNDECLARED 0
+#define GLOBAL_SCOPE 0
 
 typedef struct id_value{
     void* value[SCOPE_SIZE];

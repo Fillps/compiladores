@@ -201,22 +201,22 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
 
-    if (value->type[current_scope] != UNDECLARED)
+    if (value->type[GLOBAL_SCOPE] != UNDECLARED)
         declared_error(symbol);
 
-    value->type[current_scope] = DECL_FUNCTION;
+    value->type[GLOBAL_SCOPE] = DECL_FUNCTION;
     function_info->type = type;
-    value->decl_info[current_scope] = function_info;
+    value->decl_info[GLOBAL_SCOPE] = function_info;
 }
 
 void declare_class(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
-    if (value->type[current_scope] != UNDECLARED)
+    if (value->type[GLOBAL_SCOPE] != UNDECLARED)
         declared_error(symbol);
 
-    value->type[current_scope] = DECL_CLASS;
-    value->decl_info[current_scope] = class_info;
+    value->type[GLOBAL_SCOPE] = DECL_CLASS;
+    value->decl_info[GLOBAL_SCOPE] = class_info;
 }
 
 int check_usage(symbol_t* symbol, int type){
@@ -278,28 +278,28 @@ void check_usage_function(comp_tree_t* tree){
         param_type = params_tree->value->value_type;
     }
 
-    for(int i = scope_stack_length - 1; i >= 0; i--)
-        if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
-            function_info_t* func_info =  id_value->decl_info[scope_stack[i]];
-            if (tree->childnodes - 1 < func_info->params_length)
-                missing_args_error(symbol, func_info->params_length, tree->childnodes - 1);
-            else if (tree->childnodes - 1 > func_info->params_length)
-                excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
-            else{
-                for(int c = tree->childnodes-2; c >= 0; c--){     //percorre todos os parâmetos
-                    if(param_type != decl_variable(func_info->param_type[c]))
-                        wrong_type_args_error(param, decl_variable(func_info->param_type[c]), param_type);
 
-                    //passa para o parametro anterior fornecido na chamada
-                    params_tree = params_tree->prev;
-                    param = params_tree->value->symbol;
-                    param_type = params_tree->value->value_type;
-                }
-            }
-            return;
+    if (id_value->type[GLOBAL_SCOPE] == DECL_FUNCTION){
+        function_info_t* func_info =  id_value->decl_info[GLOBAL_SCOPE];
+        if (tree->childnodes - 1 < func_info->params_length)
+	        missing_args_error(symbol, func_info->params_length, tree->childnodes - 1);
+        else if (tree->childnodes - 1 > func_info->params_length)
+	        excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
+        else{
+	        for(int i = tree->childnodes-2; i >= 0; i--){     //percorre todos os parâmetos
+	            if(param_type != decl_variable(func_info->param_type[i]))
+		        wrong_type_args_error(param, decl_variable(func_info->param_type[i]), param_type);
+
+	            //passa para o parametro anterior fornecido na chamada
+	            params_tree = params_tree->prev;
+	            param = params_tree->value->symbol;
+	            param_type = params_tree->value->value_type;
+	        }
         }
-        else if (id_value->type[scope_stack[i]] != UNDECLARED)
-            function_error(symbol);
+        return;
+    }
+    else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
+        function_error(symbol);
 
     undeclared_error(symbol);
 }
@@ -317,21 +317,20 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
             symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
             id_value_t* class_value = (id_value_t*)class->value;
 
-            for(int j = scope_stack_length - 1; j >= 0; j--) // procura a declaracao de classe
-                if (class_value->type[scope_stack[j]] == DECL_CLASS){
-                    class_info_t* cl_info =  class_value->decl_info[scope_stack[j]];
+            if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
+                class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
 
-                    for (int k = 0; k < cl_info->field_length; k++) // procura a declaracao do attibuto
-                        if (attribute == cl_info->field_id[k])
-                            return;
-                    attribute_undeclared_error(class, attribute);
-                }
-                else if (class_value->type[scope_stack[j]] != UNDECLARED)
-                    class_error(class);
+                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do attibuto
+                    if (attribute == cl_info->field_id[j])
+                        return;
+                attribute_undeclared_error(class, attribute);
+            }
+            else if (class_value->type[GLOBAL_SCOPE] != UNDECLARED)
+                class_error(class);
 
         }
-        else if (id_value->type[scope_stack[i]] != UNDECLARED)
-            wrong_type_error(class_var, "class variable", __type_description(id_value->type[scope_stack[i]]));
+        else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
+            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
 
     undeclared_error(class_var);
 }
@@ -376,13 +375,12 @@ int get_func_type(comp_tree_t* tree){
     id_value_t* id_value = (id_value_t *) symbol->value;
     int func_type = 0;
 
-    for(int i = scope_stack_length - 1; i >= 0; i--)
-        if (id_value->type[scope_stack[i]] == DECL_FUNCTION){
-            function_info_t* func_info = id_value->decl_info[scope_stack[i]];
-            func_type = decl_variable(func_info->type);
-        }
-        else if (id_value->type[scope_stack[i]] != UNDECLARED)
-            function_error(symbol);
+    if (id_value->type[GLOBAL_SCOPE] == DECL_FUNCTION){
+        function_info_t* func_info = id_value->decl_info[GLOBAL_SCOPE];
+        func_type = decl_variable(func_info->type);
+    }
+    else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
+        function_error(symbol);
 
     return func_type;
 }
