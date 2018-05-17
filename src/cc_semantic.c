@@ -1,6 +1,8 @@
-//
-// Created by filipe on 5/9/18.
-//
+/*
+Grupo Epsilon:
+  - Douglas Flores
+  - Filipe Silva
+*/
 #include <stdlib.h>
 #include "cc_semantic.h"
 #include "cc_dict.h"

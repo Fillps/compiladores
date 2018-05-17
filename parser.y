@@ -291,12 +291,12 @@ var:
 
 
 exp:
-    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
-    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
-    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
-    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
-    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
-    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_cmp_value_type($$, TK_OC_LE); }
+    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_cmp_value_type($$, TK_OC_GE); }
+    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_cmp_value_type($$, TK_OC_EQ); }
+    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_cmp_value_type($$, TK_OC_NE); }
+    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_cmp_value_type($$, TK_OC_AND); }
+    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_cmp_value_type($$, TK_OC_OR); }
     | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
     | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
     | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_root_value_type($$, $1->value->value_type, $3->value->value_type); }

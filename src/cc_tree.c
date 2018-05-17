@@ -20,6 +20,7 @@
 #include <cc_gv.h>
 
 #include "cc_tree.h"
+#include "parser.h"
 
 extern FILE *intfp;
 void *comp_tree_last = NULL;
@@ -194,6 +195,48 @@ void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2){
 				root->value->value_type = decl_variable(POA_LIT_INT);
 		else
 				root->value->value_type = value_type_1;
+}
+
+void set_cmp_value_type(comp_tree_t* node, int op_token){
+		if(node->childnodes == 2){	//dois operadores
+				int type_exp_1 = node->first->value->value_type;
+				int type_exp_2 = node->last->value->value_type;
+
+				switch (op_token) {
+						case TK_OC_AND:
+								// mesmo código do próximo case
+						case TK_OC_OR:
+								if(type_exp_1 == decl_variable(POA_LIT_BOOL) && type_exp_2 == decl_variable(POA_LIT_BOOL))
+										node->value->value_type = decl_variable(POA_LIT_BOOL);
+								else if(type_exp_1 == decl_variable(POA_LIT_BOOL))
+										node->value->value_type = type_exp_2;
+								else
+										node->value->value_type = type_exp_1;
+								break;
+						case TK_OC_EQ:
+								if(type_exp_1 == decl_variable(POA_LIT_BOOL) && type_exp_2 == decl_variable(POA_LIT_BOOL)){
+										node->value->value_type = decl_variable(POA_LIT_BOOL);
+										break;
+								}
+								else if(type_exp_1 == decl_variable(POA_LIT_BOOL) || type_exp_1 == decl_variable(POA_LIT_BOOL)){
+										if(type_exp_1 == decl_variable(POA_LIT_BOOL))
+												node->value->value_type = type_exp_2;
+										else
+												node->value->value_type = type_exp_1;
+										break;
+								}
+						default:
+								if(type_exp_1 != decl_variable(POA_LIT_INT) && type_exp_1 != decl_variable(POA_LIT_FLOAT)){
+										node->value->value_type = type_exp_1;
+								}
+								else if(type_exp_2 != decl_variable(POA_LIT_INT) && type_exp_2 != decl_variable(POA_LIT_FLOAT)){
+										node->value->value_type = type_exp_2;
+								}
+								else{
+										node->value->value_type = decl_variable(POA_LIT_BOOL);
+								}
+				}
+		}
 }
 
 void connect_all_childs(comp_tree_t* tree){

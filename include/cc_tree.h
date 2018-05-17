@@ -116,5 +116,6 @@ void update_childs(comp_tree_t* tree);
 
 void set_node_value_type(comp_tree_t* node, int value_type);
 void set_root_value_type(comp_tree_t* root, int value_type_1, int value_type_2);
+void set_cmp_value_type(comp_tree_t* node, int token);
 
 #endif //CC_TREE_H_
