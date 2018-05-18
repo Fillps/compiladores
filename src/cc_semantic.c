@@ -244,7 +244,9 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
         declared_error(symbol);
 
     value->type[current_scope] = type;
+    //printf("tipo da declaração %d\n", value->type[current_scope]);
     value->decl_info[current_scope] = class_type;
+    //printf("lexema da classe: %s\n", ((symbol_t*)value->decl_info[current_scope])->lexeme);
 }
 
 void declare_function(symbol_t* symbol, int type){
@@ -364,9 +366,9 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
             else
                 class_undeclared_error(class);
 
-        }
-        else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
-            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
+      }
+      else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
+          wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
 
     undeclared_error(class_var);
 }
@@ -406,6 +408,38 @@ int get_var_type(symbol_t* var){
     return var_type;
 }
 
+int get_vector_type(symbol_t* symbol){
+    id_value_t* value = symbol->value;
+
+    for(int i = scope_stack_length - 1; i >= 0; i--)
+        if (value->type[scope_stack[i]] != UNDECLARED)
+            return value->type[scope_stack[i]];
+
+    return 0;
+}
+
+int get_attribute_type(symbol_t* class_var, symbol_t* attribute){
+    id_value_t* id_value = (id_value_t *) class_var->value;
+
+    for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
+        if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
+            symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
+            id_value_t* class_value = (id_value_t*)class->value;
+
+            if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
+                class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
+
+                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do atributo
+                    if (attribute == cl_info->field_id[j]){
+                        printf("tipo: %d\n", cl_info->field_type[j]);
+                        return cl_info->field_type[j];
+                    }
+            }
+        }
+
+    return 0;
+}
+
 int get_func_type(comp_tree_t* tree){
     symbol_t* symbol = tree->first->value->symbol;
     id_value_t* id_value = (id_value_t *) symbol->value;
@@ -437,35 +471,6 @@ void check_var_assignment(symbol_t* var, comp_tree_t* exp){
 
     if(var_type != val_type)
         wrong_type_assignment(var, var_type, val_type);
-}
-
-void check_condition(comp_tree_t* exp, int token){
-    int exp_type = exp->value->value_type;
-    char* comand;
-
-    switch (token) {
-        case TK_PR_IF:
-            comand = "if";
-            break;
-        case TK_PR_DO:
-            comand = "do-while";
-            break;
-        case TK_PR_WHILE:
-            comand = "while";
-            break;
-        case TK_PR_FOR:
-            comand = "for";
-            break;
-        default:
-            comand = "unknown comand";
-    }
-
-    if(exp_type != decl_variable(POA_LIT_BOOL))
-        invalid_condition_error(exp, comand, "logic", exp_type);
-}
-
-void set_unary_node_value_type(comp_tree_t* node, int value_type){
-		node->value->value_type = value_type;
 }
 
 char* get_token_name(int token){
@@ -513,8 +518,46 @@ char* get_token_name(int token){
         case POT:
             name = "^";
             break;
+        case TK_PR_IF:
+            name = "if";
+            break;
+        case TK_PR_DO:
+            name = "do-while";
+            break;
+        case TK_PR_WHILE:
+            name = "while";
+            break;
+        case TK_PR_FOR:
+            name = "for";
+            break;
+        case TK_PR_SWITCH:
+            name = "switch-case";
+            break;
+        case TK_PR_FOREACH:
+            name = "foreach";
+            break;
     }
     return name;
+}
+
+void check_condition(comp_tree_t* exp, int token){
+    int exp_type = exp->value->value_type;
+    char* comand = get_token_name(token);
+
+    switch (token) {
+        case TK_PR_IF: case TK_PR_DO: case TK_PR_WHILE: case TK_PR_FOR:
+            if(exp_type != decl_variable(POA_LIT_BOOL))
+                invalid_condition_error(exp, comand, "logic", exp_type);
+            break;
+        case TK_PR_SWITCH:
+            if(exp_type != decl_variable(POA_LIT_INT) && exp_type != decl_variable(POA_LIT_CHAR))
+                invalid_condition_error(exp, comand, "integer or char", exp_type);
+            break;
+    }
+}
+
+void set_unary_node_value_type(comp_tree_t* node, int value_type){
+		node->value->value_type = value_type;
 }
 
 void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){

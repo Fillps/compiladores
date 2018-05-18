@@ -108,6 +108,8 @@ void check_var_assignment(symbol_t* var, comp_tree_t* exp);
 void check_condition(comp_tree_t* exp, int token);
 
 int get_var_type(symbol_t* var);
+int get_vector_type(symbol_t* symbol);
+int get_attribute_type(symbol_t* class_var, symbol_t* attribute);
 int get_func_type(comp_tree_t* tree);
 
 void set_unary_node_value_type(comp_tree_t* node, int value_type);

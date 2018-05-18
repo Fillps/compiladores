@@ -197,9 +197,9 @@ var_global:
     | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';' {
                                                                         check_declared($2, DECL_CLASS);
                                                                         if($4 == FALSE)
-                                                                            declare($3, decl_variable($2->token));
+                                                                            declare_non_primitive($3, decl_variable($2->token), $2);
                                                                         else
-                                                                            declare($3, decl_vector($2->token));
+                                                                            declare_non_primitive($3, decl_vector($2->token), $2);
                                                                     };
 
 static_opc:
@@ -285,9 +285,17 @@ atribuicao:
     var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); check_var_assignment($1->value->symbol, $3); };
 
 var:
-    identificador                       { $$ = $1; check_usage_variable($1->value->symbol); }
-    | identificador '[' exp ']'         { $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, $1, $3); check_usage_vector($1->value->symbol); }
-    | identificador '.' identificador   { $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3); check_usage_attribute($1->value->symbol, $3->value->symbol); };
+    identificador                       { $$ = $1; check_usage_variable($1->value->symbol); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
+    | identificador '[' exp ']'         {
+                                          $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, $1, $3);
+                                          check_usage_vector($1->value->symbol);
+                                          set_unary_node_value_type($$, get_vector_type($1->value->symbol));
+                                        }
+    | identificador '.' identificador   {
+                                          $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3);
+                                          check_usage_attribute($1->value->symbol, $3->value->symbol);
+                                          //set_unary_node_value_type($$, get_attribute_type($1->value->symbol, $3->value->symbol));
+                                        };
 
 
 exp:
@@ -309,7 +317,7 @@ exp:
     | '+' exp %prec UMINUS  { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
     | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
-    | var                   { $$ = $1; set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
+    | var                   { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
     | literal               { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
     | chamada_funcao        { $$ = $1; set_unary_node_value_type($$, get_func_type($1)); }
     | pipe                  { $$ = $1; };
@@ -390,6 +398,7 @@ switch:
                                             tree_free($3);
                                             $$ = NULL;
                                         }
+                                        check_condition($3, TK_PR_SWITCH);
                                       };
 
 /* WHILE e DO-WHILE */
@@ -400,7 +409,7 @@ while:
     while_exp TK_PR_DO corpo    {
                                     if ($3){
                                         $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3);
-                                        check_condition($1, TK_PR_WHILE);
+                                        //check_condition($1, TK_PR_WHILE);
                                     }
                                     else{
                                         tree_free($1);
