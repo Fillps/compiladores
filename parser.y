@@ -291,20 +291,20 @@ var:
 
 
 exp:
-    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM); }
-    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM); }
-    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL); }
-    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL); }
-    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL); }
-    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL); }
-    | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM); }
-    | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM); }
-    | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
-    | exp '-' exp           { $$ = createASTBinaryNode(AST_ARIM_SUBTRACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
-    | exp '*' exp           { $$ = createASTBinaryNode(AST_ARIM_MULTIPLICACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
-    | exp '/' exp           { $$ = createASTBinaryNode(AST_ARIM_DIVISAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
-    | exp '%' exp           { $$ = createASTBinaryNode(AST_ARIM_MOD, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
-    | exp '^' exp           { $$ = createASTBinaryNode(AST_ARIM_POT, NULL, $1, $3); set_binary_node_value_type($$, ARITM); }
+    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_LE); }
+    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_GE); }
+    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_EQ); }
+    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_NE); }
+    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_AND); }
+    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_OR); }
+    | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, GREATER); }
+    | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, LESSER); }
+    | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SUM); }
+    | exp '-' exp           { $$ = createASTBinaryNode(AST_ARIM_SUBTRACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SUB); }
+    | exp '*' exp           { $$ = createASTBinaryNode(AST_ARIM_MULTIPLICACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, MULT); }
+    | exp '/' exp           { $$ = createASTBinaryNode(AST_ARIM_DIVISAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, DIV); }
+    | exp '%' exp           { $$ = createASTBinaryNode(AST_ARIM_MOD, NULL, $1, $3); set_binary_node_value_type($$, ARITM, MOD); }
+    | exp '^' exp           { $$ = createASTBinaryNode(AST_ARIM_POT, NULL, $1, $3); set_binary_node_value_type($$, ARITM, POT); }
     | '(' exp ')'           { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '+' exp %prec UMINUS  { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
@@ -368,6 +368,7 @@ if:
                                                                         tree_free($3);
                                                                         $$ = NULL;
                                                                     }
+                                                                    check_condition($3, TK_PR_IF);
                                                                 }
     | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo    {
                                                                     if ($6 && $8)
@@ -378,6 +379,7 @@ if:
                                                                         $$ = createASTBinaryNode(AST_IF_ELSE, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
                                                                     else
                                                                         $$ = NULL;
+                                                                    check_condition($3, TK_PR_IF);
                                                                 };
 /* SWITCH */
 switch:
@@ -396,8 +398,10 @@ while_exp:
 
 while:
     while_exp TK_PR_DO corpo    {
-                                    if ($3)
+                                    if ($3){
                                         $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3);
+                                        check_condition($1, TK_PR_WHILE);
+                                    }
                                     else{
                                         tree_free($1);
                                         $$ = NULL;
@@ -406,8 +410,10 @@ while:
 
 do_while:
     TK_PR_DO corpo while_exp    {
-                                    if ($2)
+                                    if ($2){
                                         $$ = createASTBinaryNode(AST_DO_WHILE, NULL, $2, $3);
+                                        check_condition($3, TK_PR_DO);
+                                    }
                                     else{
                                         tree_free($3);
                                         $$ = NULL;

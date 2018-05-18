@@ -6,6 +6,7 @@ Grupo Epsilon:
 #include <stdlib.h>
 #include "cc_semantic.h"
 #include "cc_dict.h"
+#include "parser.h"
 
 function_info_t* function_info;
 class_info_t* class_info;
@@ -177,9 +178,30 @@ void wrong_type_assignment(symbol_t* var, int correct_type, int wrong_type){
     }
 }
 
-void invalid_exp(char* correct_type, int wrong_type){
-    fprintf (stderr, "IKS_ERROR_INVALID_EXP! The expression was supposed to receive two \'%s\' but one operand was \'%s\'.\n",
-            correct_type, __type_description(wrong_type));
+void invalid_exp(comp_tree_t* exp_tree, char* correct_type, int wrong_type, char* token){
+    /* Busca a linha da expressão */
+    int line = 0;
+    while(exp_tree->first){
+        exp_tree = exp_tree->first;
+    }
+    line = exp_tree->value->symbol->line;
+
+    fprintf (stderr, "IKS_ERROR_INVALID_EXP(line: %d, id: %s) \'%s\' is a \'%s\' expression, but was found one \'%s\' operand.\n",
+            line, token, token, correct_type, __type_description(wrong_type));
+}
+
+void invalid_condition_error(comp_tree_t* exp_tree, char* comand, char* correct_type, int wrong_type){
+    /* Busca a linha da expressão */
+    int line = 0;
+    while(exp_tree->first){
+        exp_tree = exp_tree->first;
+    }
+    line = exp_tree->value->symbol->line;
+
+    /* Imprime o erro */
+    fprintf (stderr, "IKS_ERROR_INVALID_CONDITION(line: %d, id: %s) \'%s\' condition must be a \'%s\' expression but was given a \'%s\' expression.\n",
+             line, comand, comand, correct_type, __type_description(wrong_type));
+    exit(IKS_ERROR_INVALID_CONDITION);
 }
 
 void check_declared(symbol_t* symbol, int type){
@@ -417,11 +439,85 @@ void check_var_assignment(symbol_t* var, comp_tree_t* exp){
         wrong_type_assignment(var, var_type, val_type);
 }
 
+void check_condition(comp_tree_t* exp, int token){
+    int exp_type = exp->value->value_type;
+    char* comand;
+
+    switch (token) {
+        case TK_PR_IF:
+            comand = "if";
+            break;
+        case TK_PR_DO:
+            comand = "do-while";
+            break;
+        case TK_PR_WHILE:
+            comand = "while";
+            break;
+        case TK_PR_FOR:
+            comand = "for";
+            break;
+        default:
+            comand = "unknown comand";
+    }
+
+    if(exp_type != decl_variable(POA_LIT_BOOL))
+        invalid_condition_error(exp, comand, "logic", exp_type);
+}
+
 void set_unary_node_value_type(comp_tree_t* node, int value_type){
 		node->value->value_type = value_type;
 }
 
-void set_binary_node_value_type(comp_tree_t* node, int op_type){
+char* get_token_name(int token){
+    char* name = "unknown token";
+
+    switch (token) {
+        case TK_OC_LE:
+            name = "<=";
+            break;
+        case TK_OC_GE:
+            name = ">=";
+            break;
+        case TK_OC_EQ:
+            name = "==";
+            break;
+        case TK_OC_NE:
+            name = "!=";
+            break;
+        case TK_OC_AND:
+            name = "&&";
+        case TK_OC_OR:
+            name = "||";
+            break;
+        case GREATER:
+            name = ">";
+            break;
+        case LESSER:
+            name = "<";
+            break;
+        case SUM:
+            name = "+";
+            break;
+        case SUB:
+            name = "-";
+            break;
+        case MULT:
+            name = "*";
+            break;
+        case DIV:
+            name = "/";
+            break;
+        case MOD:
+            name = "%";
+            break;
+        case POT:
+            name = "^";
+            break;
+    }
+    return name;
+}
+
+void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){
     int type_left = node->first->value->value_type;
     int type_right = node->last->value->value_type;
 
@@ -429,11 +525,11 @@ void set_binary_node_value_type(comp_tree_t* node, int op_type){
 				case CMP_BOOL:
             if(type_left != decl_variable(POA_LIT_BOOL)){
                 node->value->value_type = type_left;
-                invalid_exp("bool", type_left);
+                invalid_exp(node, "boolean", type_left, get_token_name(op_token));
             }
             else if(type_right != decl_variable(POA_LIT_BOOL)){
                 node->value->value_type = type_right;
-                invalid_exp("bool", type_right);
+                invalid_exp(node, "boolean", type_right, get_token_name(op_token));
             }
             else
                 node->value->value_type = decl_variable(POA_LIT_BOOL);
@@ -446,21 +542,33 @@ void set_binary_node_value_type(comp_tree_t* node, int op_type){
                 }
                 else{
                     node->value->value_type = type_right;
-                    invalid_exp("bool", type_right);
+                    invalid_exp(node, "boolean", type_right, get_token_name(op_token));
                 }
-        case ARITM:
-            // Mesmo código da comparação aritmética
         case CMP_ARITM:
             if(type_left != decl_variable(POA_LIT_INT) && type_left != decl_variable(POA_LIT_FLOAT)){
                 node->value->value_type = type_left;
-                invalid_exp("numeric", type_left);
+                invalid_exp(node, "aritmetic", type_left, get_token_name(op_token));
             }
             else if(type_right != decl_variable(POA_LIT_INT) && type_right != decl_variable(POA_LIT_FLOAT)){
                 node->value->value_type = type_right;
-                invalid_exp("numeric", type_right);
+                invalid_exp(node, "aritmetic", type_right, get_token_name(op_token));
             }
             else
                 node->value->value_type = decl_variable(POA_LIT_BOOL);
-        break;
+            break;
+        case ARITM:
+            if(type_left != decl_variable(POA_LIT_INT) && type_left != decl_variable(POA_LIT_FLOAT)){
+                node->value->value_type = type_left;
+                invalid_exp(node, "aritmetic", type_left, get_token_name(op_token));
+            }
+            else if(type_right != decl_variable(POA_LIT_INT) && type_right != decl_variable(POA_LIT_FLOAT)){
+                node->value->value_type = type_right;
+                invalid_exp(node, "aritmetic", type_right, get_token_name(op_token));
+            }
+            else if(type_left == decl_variable(POA_LIT_FLOAT) || type_right == decl_variable(POA_LIT_FLOAT))
+                node->value->value_type = decl_variable(POA_LIT_FLOAT);
+            else
+                node->value->value_type = decl_variable(POA_LIT_INT);
+            break;
 		}
 }

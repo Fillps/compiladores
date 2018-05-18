@@ -35,6 +35,7 @@
 
 /* Expressões e tipos */
 #define IKS_ERROR_INVALID_EXP   18  //expressões com tipos não compatíveis
+#define IKS_ERROR_INVALID_CONDITION   19    // condições de comandos de controle de fluxo
 
 /* Tipos de declaracao de indentificadores */
 #define DECL_CLASS          1
@@ -47,6 +48,16 @@
 #define CMP_BOOL        2   // ex: and, or
 #define CMP_ARITM_BOOL  3   // ex: '==', que pode comparar tanto booleanos quanto números
 #define ARITM           4   // expressões aritméticas
+
+/* Tokens de operadores simples */
+#define GREATER 1
+#define LESSER  2
+#define SUM     3
+#define SUB     4
+#define MULT    5
+#define DIV     6
+#define MOD     7
+#define POT     8
 
 #define SCOPE_SIZE 1000
 #define PARAM_SIZE 100
@@ -94,11 +105,12 @@ void check_usage_vector(symbol_t* symbol);
 void check_usage_function(comp_tree_t* tree);
 void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
 void check_var_assignment(symbol_t* var, comp_tree_t* exp);
+void check_condition(comp_tree_t* exp, int token);
 
 int get_var_type(symbol_t* var);
 int get_func_type(comp_tree_t* tree);
 
 void set_unary_node_value_type(comp_tree_t* node, int value_type);
-void set_binary_node_value_type(comp_tree_t* node, int op_type);
+void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token);
 
 #endif //COMPILADOR_CC_SEMANTIC_H
