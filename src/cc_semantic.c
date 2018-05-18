@@ -350,7 +350,7 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
-            symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
+            symbol_t* class = ((symbol_t *)id_value->decl_info[scope_stack[i]]);
             id_value_t* class_value = (id_value_t*)class->value;
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
@@ -423,7 +423,7 @@ int get_attribute_type(symbol_t* class_var, symbol_t* attribute){
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
-            symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
+            symbol_t* class = (symbol_t *)id_value->decl_info[scope_stack[i]];
             id_value_t* class_value = (id_value_t*)class->value;
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
