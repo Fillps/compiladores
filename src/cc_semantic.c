@@ -151,12 +151,12 @@ void attribute_undeclared_error(symbol_t* class, symbol_t* attribute){
 void wrong_type_assignment(symbol_t* var, int correct_type, int wrong_type){
     switch (wrong_type) {
         case decl_variable(POA_LIT_STRING):
-            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\' \'%s\'.\n",
-                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type), var->lexeme);
+            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
+                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
             exit(IKS_ERROR_STRING_TO_X);
         case decl_variable(POA_LIT_CHAR):
-            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\' \'%s\'.\n",
-                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type), var->lexeme);
+            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
+                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
             exit(IKS_ERROR_CHAR_TO_X);
         case decl_variable(POA_LIT_INT):
             if(correct_type == decl_variable(POA_LIT_FLOAT))
@@ -175,6 +175,11 @@ void wrong_type_assignment(symbol_t* var, int correct_type, int wrong_type){
                      var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
             exit(IKS_ERROR_WRONG_TYPE);
     }
+}
+
+void invalid_exp(char* correct_type, int wrong_type){
+    fprintf (stderr, "IKS_ERROR_INVALID_EXP! The expression was supposed to receive two \'%s\' but one operand was \'%s\'.\n",
+            correct_type, __type_description(wrong_type));
 }
 
 void check_declared(symbol_t* symbol, int type){
@@ -410,4 +415,52 @@ void check_var_assignment(symbol_t* var, comp_tree_t* exp){
 
     if(var_type != val_type)
         wrong_type_assignment(var, var_type, val_type);
+}
+
+void set_unary_node_value_type(comp_tree_t* node, int value_type){
+		node->value->value_type = value_type;
+}
+
+void set_binary_node_value_type(comp_tree_t* node, int op_type){
+    int type_left = node->first->value->value_type;
+    int type_right = node->last->value->value_type;
+
+    switch (op_type) {
+				case CMP_BOOL:
+            if(type_left != decl_variable(POA_LIT_BOOL)){
+                node->value->value_type = type_left;
+                invalid_exp("bool", type_left);
+            }
+            else if(type_right != decl_variable(POA_LIT_BOOL)){
+                node->value->value_type = type_right;
+                invalid_exp("bool", type_right);
+            }
+            else
+                node->value->value_type = decl_variable(POA_LIT_BOOL);
+            break;
+        case CMP_ARITM_BOOL:
+            if(type_left == decl_variable(POA_LIT_BOOL))
+                if(type_right == decl_variable(POA_LIT_BOOL)){
+                    node->value->value_type = decl_variable(POA_LIT_BOOL);
+                    break;
+                }
+                else{
+                    node->value->value_type = type_right;
+                    invalid_exp("bool", type_right);
+                }
+        case ARITM:
+            // Mesmo código da comparação aritmética
+        case CMP_ARITM:
+            if(type_left != decl_variable(POA_LIT_INT) && type_left != decl_variable(POA_LIT_FLOAT)){
+                node->value->value_type = type_left;
+                invalid_exp("numeric", type_left);
+            }
+            else if(type_right != decl_variable(POA_LIT_INT) && type_right != decl_variable(POA_LIT_FLOAT)){
+                node->value->value_type = type_right;
+                invalid_exp("numeric", type_right);
+            }
+            else
+                node->value->value_type = decl_variable(POA_LIT_BOOL);
+        break;
+		}
 }

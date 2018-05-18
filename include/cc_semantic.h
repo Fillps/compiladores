@@ -33,11 +33,20 @@
 #define IKS_ERROR_STRING_TO_X   7   //variável não string recebe string
 #define IKS_ERROR_CHAR_TO_X     8   //variável não char recebe char
 
+/* Expressões e tipos */
+#define IKS_ERROR_INVALID_EXP   18  //expressões com tipos não compatíveis
+
 /* Tipos de declaracao de indentificadores */
 #define DECL_CLASS          1
 #define DECL_FUNCTION       2
 #define decl_variable(type) DECL_FUNCTION + type            // onde type = POA_LIT_INT, POA_LIT_FLOAT...
 #define decl_vector(type)   decl_variable(POA_IDENT) + type
+
+/* Tipos de operações com dois operandos */
+#define CMP_ARITM       1   // ex: '>', '<=', '<', etc
+#define CMP_BOOL        2   // ex: and, or
+#define CMP_ARITM_BOOL  3   // ex: '==', que pode comparar tanto booleanos quanto números
+#define ARITM           4   // expressões aritméticas
 
 #define SCOPE_SIZE 1000
 #define PARAM_SIZE 100
@@ -88,5 +97,8 @@ void check_var_assignment(symbol_t* var, comp_tree_t* exp);
 
 int get_var_type(symbol_t* var);
 int get_func_type(comp_tree_t* tree);
+
+void set_unary_node_value_type(comp_tree_t* node, int value_type);
+void set_binary_node_value_type(comp_tree_t* node, int op_type);
 
 #endif //COMPILADOR_CC_SEMANTIC_H
