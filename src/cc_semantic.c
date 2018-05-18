@@ -366,9 +366,9 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
             else
                 class_undeclared_error(class);
 
-      }
-      else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
-          wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
+        }
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
+            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
 
     undeclared_error(class_var);
 }
@@ -440,7 +440,7 @@ int get_attribute_type(symbol_t* class_var, symbol_t* attribute){
                 class_undeclared_error(class);
 
         }
-        else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
             wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
 
     undeclared_error(class_var);
