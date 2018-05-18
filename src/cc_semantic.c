@@ -121,9 +121,11 @@ void wrong_type_args_error(symbol_t* var, int correct_type, int wrong_type){
         case decl_variable(POA_LIT_INT):
             if(correct_type == decl_variable(POA_LIT_FLOAT))
                 different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+            break;
         case decl_variable(POA_LIT_FLOAT):
             if(correct_type == decl_variable(POA_LIT_INT))
                 different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+            break;
         default:
             fprintf (stderr, "IKS_ERROR_WRONG_TYPE_ARGS(line: %d, id: %s) correct arg type is \'%s\', but was given \'%s\' \'%s\'.\n",
                      var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type), var->lexeme);
@@ -244,9 +246,7 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
         declared_error(symbol);
 
     value->type[current_scope] = type;
-    //printf("tipo da declaração %d\n", value->type[current_scope]);
     value->decl_info[current_scope] = class_type;
-    //printf("lexema da classe: %s\n", ((symbol_t*)value->decl_info[current_scope])->lexeme);
 }
 
 void declare_function(symbol_t* symbol, int type){
@@ -328,8 +328,8 @@ void check_usage_function(comp_tree_t* tree){
 	        excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
         else{
 	        for(int i = tree->childnodes-2; i >= 0; i--){     //percorre todos os parâmetos
-	            if(param_type != decl_variable(func_info->param_type[i]))
-		        wrong_type_args_error(param, decl_variable(func_info->param_type[i]), param_type);
+	            if(param_type != func_info->param_type[i])
+		              wrong_type_args_error(param, func_info->param_type[i], param_type);
 
 	            //passa para o parametro anterior fornecido na chamada
 	            params_tree = params_tree->prev;
