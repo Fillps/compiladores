@@ -282,7 +282,14 @@ var_valor:
 
 /* Atribuição */
 atribuicao:
-    var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3); check_var_assignment($1->value->symbol, $3); };
+    var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3);
+                  if ($1->value->type == AST_IDENTIFICADOR)
+                    check_var_assignment($1->value->symbol, $1->value->value_type, $3->value->value_type);
+                  else if ($1->value->type == AST_VETOR_INDEXADO)
+                    check_var_assignment($1->first->value->symbol, $1->value->value_type, $3->value->value_type);
+                  else
+                    check_var_assignment($1->last->value->symbol, $1->value->value_type, $3->value->value_type);
+                };
 
 var:
     identificador                       { $$ = $1; check_usage_variable($1->value->symbol); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
@@ -294,7 +301,7 @@ var:
     | identificador '.' identificador   {
                                           $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3);
                                           check_usage_attribute($1->value->symbol, $3->value->symbol);
-                                          //set_unary_node_value_type($$, get_attribute_type($1->value->symbol, $3->value->symbol));
+                                          set_unary_node_value_type($$, get_attribute_type($1->value->symbol, $3->value->symbol));
                                         };
 
 

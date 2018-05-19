@@ -121,9 +121,11 @@ void wrong_type_args_error(symbol_t* var, int correct_type, int wrong_type){
         case decl_variable(POA_LIT_INT):
             if(correct_type == decl_variable(POA_LIT_FLOAT))
                 different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+            break;
         case decl_variable(POA_LIT_FLOAT):
             if(correct_type == decl_variable(POA_LIT_INT))
                 different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+            break;
         default:
             fprintf (stderr, "IKS_ERROR_WRONG_TYPE_ARGS(line: %d, id: %s) correct arg type is \'%s\', but was given \'%s\' \'%s\'.\n",
                      var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type), var->lexeme);
@@ -244,9 +246,7 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
         declared_error(symbol);
 
     value->type[current_scope] = type;
-    //printf("tipo da declaração %d\n", value->type[current_scope]);
     value->decl_info[current_scope] = class_type;
-    //printf("lexema da classe: %s\n", ((symbol_t*)value->decl_info[current_scope])->lexeme);
 }
 
 void declare_function(symbol_t* symbol, int type){
@@ -328,8 +328,8 @@ void check_usage_function(comp_tree_t* tree){
 	        excess_args_error(symbol, func_info->params_length, tree->childnodes - 1);
         else{
 	        for(int i = tree->childnodes-2; i >= 0; i--){     //percorre todos os parâmetos
-	            if(param_type != decl_variable(func_info->param_type[i]))
-		        wrong_type_args_error(param, decl_variable(func_info->param_type[i]), param_type);
+	            if(param_type != func_info->param_type[i])
+		              wrong_type_args_error(param, func_info->param_type[i], param_type);
 
 	            //passa para o parametro anterior fornecido na chamada
 	            params_tree = params_tree->prev;
@@ -350,7 +350,7 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
-            symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
+            symbol_t* class = ((symbol_t *)id_value->decl_info[scope_stack[i]]);
             id_value_t* class_value = (id_value_t*)class->value;
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
@@ -366,9 +366,9 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
             else
                 class_undeclared_error(class);
 
-      }
-      else if (id_value->type[GLOBAL_SCOPE] != UNDECLARED)
-          wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
+        }
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
+            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
 
     undeclared_error(class_var);
 }
@@ -380,7 +380,7 @@ void create_params(){
 
 void add_param(symbol_t* symbol, int type){
     function_info->param_id[function_info->params_length] = symbol;
-    function_info->param_type[function_info->params_length] = type;
+    function_info->param_type[function_info->params_length] = decl_variable(type);
     function_info->params_length++;
 }
 
@@ -391,7 +391,7 @@ void create_class_fields(){
 
 void class_add_field(symbol_t* symbol, int type){
     class_info->field_id[class_info->field_length] = symbol;
-    class_info->field_type[class_info->field_length] = type;
+    class_info->field_type[class_info->field_length] = decl_variable(type);
     class_info->field_length++;
 }
 
@@ -423,21 +423,27 @@ int get_attribute_type(symbol_t* class_var, symbol_t* attribute){
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
-            symbol_t* class = ((symbol_t *)id_value->decl_info)->value;
+            symbol_t* class = (symbol_t *)id_value->decl_info[scope_stack[i]];
             id_value_t* class_value = (id_value_t*)class->value;
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
                 class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
 
-                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do atributo
-                    if (attribute == cl_info->field_id[j]){
-                        printf("tipo: %d\n", cl_info->field_type[j]);
+                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do attibuto
+                    if (attribute == cl_info->field_id[j])
                         return cl_info->field_type[j];
-                    }
+                attribute_undeclared_error(class, attribute);
             }
-        }
+            else if (class_value->type[GLOBAL_SCOPE] != UNDECLARED)
+                class_error(class);
+            else
+                class_undeclared_error(class);
 
-    return 0;
+        }
+        else if (id_value->type[scope_stack[i]] != UNDECLARED)
+            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
+
+    undeclared_error(class_var);
 }
 
 int get_func_type(comp_tree_t* tree){
@@ -455,22 +461,9 @@ int get_func_type(comp_tree_t* tree){
     return func_type;
 }
 
-void check_var_assignment(symbol_t* var, comp_tree_t* exp){
-    int var_type = 0;
-    int val_type = 0;
-    id_value_t* id_var = var->value;
-
-
-    for(int i = scope_stack_length - 1; i >= 0; i--)
-        if(id_var->type[scope_stack[i]] != UNDECLARED){
-            var_type = id_var->type[scope_stack[i]];
-            break;
-        }
-
-    val_type = exp->value->value_type;
-
-    if(var_type != val_type)
-        wrong_type_assignment(var, var_type, val_type);
+void check_var_assignment(symbol_t* var, int var_type, int exp_type){
+    if(var_type != exp_type)
+        wrong_type_assignment(var, var_type, exp_type);
 }
 
 char* get_token_name(int token){
