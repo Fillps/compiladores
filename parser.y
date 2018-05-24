@@ -410,13 +410,12 @@ switch:
 
 /* WHILE e DO-WHILE */
 while_exp:
-    TK_PR_WHILE '(' exp ')'    { $$ = $3; };
+    TK_PR_WHILE '(' exp ')'    { $$ = $3; check_condition($3, TK_PR_WHILE); };
 
 while:
     while_exp TK_PR_DO corpo    {
                                     if ($3){
                                         $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3);
-                                        //check_condition($1, TK_PR_WHILE);
                                     }
                                     else{
                                         tree_free($1);
@@ -439,6 +438,7 @@ do_while:
 /* FOREACH */
 foreach:
     TK_PR_FOREACH '(' identificador ':' exp_lista ')' corpo    {
+                                                                check_usage_variable($3->value->symbol);
                                                                 if ($7)
                                                                     $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7);
                                                                 else{
@@ -451,6 +451,7 @@ foreach:
 /* FOR */
 for:
     TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo   {
+                                                                            check_condition($5, TK_PR_FOR);
                                                                             if ($7)
                                                                                 $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9);
                                                                             else{

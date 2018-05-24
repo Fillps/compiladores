@@ -538,7 +538,10 @@ void check_condition(comp_tree_t* exp, int token){
     char* comand = get_token_name(token);
 
     switch (token) {
-        case TK_PR_IF: case TK_PR_DO: case TK_PR_WHILE: case TK_PR_FOR:
+        case TK_PR_IF:
+        case TK_PR_DO:
+        case TK_PR_WHILE:
+        case TK_PR_FOR:
             if(exp_type != decl_variable(POA_LIT_BOOL))
                 invalid_condition_error(exp, comand, "logic", exp_type);
             break;
