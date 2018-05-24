@@ -1,0 +1,31 @@
+string ax[7];
+int a;
+string str;
+class Pessoa[public string nome : public int idade : public bool a];
+Pessoa joana;
+
+float f(int p1){
+  char j;
+  float k;
+  string l;
+}
+int g(){
+  float b;
+  char c;
+  bool d;
+
+  joana.idade = 'a';
+  d = true && false;
+
+  c = 'a';
+  a = 10.5 + 10;
+  b = f(5);
+
+  while (d) do {
+    c='a';
+  };
+
+  switch(c){
+    case 10:
+  };
+}
