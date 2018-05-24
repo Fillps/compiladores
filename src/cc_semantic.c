@@ -611,3 +611,24 @@ void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){
             break;
 		}
 }
+
+void set_pipe_type(comp_tree_t* pipes){
+    comp_tree_t* tree = pipes;
+
+    while (tree->value->type == AST_ENCADEAMENTO_PIPE || tree->value->type == AST_ENCADEAMENTO_PIPEG) {
+        set_unary_node_value_type(tree, tree->first->value->value_type);
+        tree = tree->first->first->next;
+    }
+}
+
+void check_pipe(comp_tree_t* pipes){
+
+    set_pipe_type(pipes);
+
+    comp_tree_t* tree = pipes->first;
+
+    while (tree->value->type == AST_CHAMADA_DE_FUNCAO) {
+        check_usage_function(tree);
+        tree = tree->first->next->first;
+    }
+}
