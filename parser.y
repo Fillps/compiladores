@@ -323,7 +323,7 @@ exp:
     | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
     | var                   { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
     | literal               { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
-    | chamada_funcao        { $$ = $1; set_unary_node_value_type($$, get_func_type($1)); }
+    | chamada_funcao        { $$ = $1; }
     | pipe                  { $$ = $1; };
 
 exp_lista:
@@ -339,8 +339,8 @@ input:
 
 /* Chamada de função */
 chamada_funcao:
-    identificador '(' chamada_parametros ')' { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $3); update_childs($$); check_usage_function($$); }
-    | identificador '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); check_usage_function($$); };
+    identificador '(' chamada_parametros ')' { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $3); $$->value->symbol = $1->value->symbol; set_unary_node_value_type($$, get_func_type($$)); update_childs($$); check_usage_function($$); }
+    | identificador '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); $$->value->symbol = $1->value->symbol; set_unary_node_value_type($$, get_func_type($$)); check_usage_function($$); };
 
 chamada_parametros:
     exp ',' chamada_parametros  { $$ = $1; tree_make_next($1, $3); build_symbol($1);}
@@ -479,8 +479,8 @@ lista_comandos:
 
 /* Pipes */
 pipe:
-    chamada_funcao TK_OC_PIPE funcoes_encadeadas      { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPE); }
-    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas   { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPEG); };
+    chamada_funcao TK_OC_PIPE funcoes_encadeadas      { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPE); check_pipe($$); }
+    | chamada_funcao TK_OC_PIPEG funcoes_encadeadas   { $$ = tree_finish_pipe($1, $3, AST_ENCADEAMENTO_PIPEG); check_pipe($$); };
 
 funcoes_encadeadas:
     funcao_encadeada                                    { $$ = $1; }
@@ -494,7 +494,7 @@ funcoes_encadeadas:
                                                         };
 
 funcao_encadeada:
-    identificador '(' '.' ')'                             { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); }
-    | identificador '(' '.' ',' chamada_parametros ')'    { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $5); };
+    identificador '(' '.' ')'                             { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); $$->value->symbol = $1->value->symbol; set_unary_node_value_type($$, get_func_type($$));}
+    | identificador '(' '.' ',' chamada_parametros ')'    { $$ = createASTBinaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1, $5); $$->value->symbol = $1->value->symbol; set_unary_node_value_type($$, get_func_type($$));};
 
 %%
