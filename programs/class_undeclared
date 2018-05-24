@@ -1,0 +1,2 @@
+class Pessoa[public string nome : public int idade : public bool a];
+Passaro joao;
