@@ -18,10 +18,13 @@
 #include <cc_misc.h>
 #include <cc_ast.h>
 #include <cc_gv.h>
+#include <memory.h>
+
 
 #include "cc_tree.h"
 #include "parser.h"
 
+extern int line_number;
 extern FILE *intfp;
 void *comp_tree_last = NULL;
 
@@ -285,4 +288,83 @@ void update_childs(comp_tree_t* tree){
     }
     tree->childnodes = n_childs;
     tree->last = last;
+}
+
+char *_description_from_type (int tipo)
+{
+    switch (tipo){
+        case AST_PROGRAMA: return "programa";
+        case AST_IF_ELSE: return "ifelse";
+        case AST_DO_WHILE: return "dowhile";
+        case AST_WHILE_DO: return "whiledo";
+        case AST_INPUT: return "input";
+        case AST_OUTPUT: return "output";
+        case AST_ATRIBUICAO: return "=";
+        case AST_RETURN: return "return";
+        case AST_BLOCO: return "block";
+        case AST_ARIM_SOMA: return "+";
+        case AST_ARIM_SUBTRACAO: return "-";
+        case AST_ARIM_MULTIPLICACAO: return "*";
+        case AST_ARIM_DIVISAO: return "/";
+        case AST_ARIM_INVERSAO: return "-";
+        case AST_LOGICO_E: return "&&";
+        case AST_LOGICO_OU: return "||";
+        case AST_LOGICO_COMP_DIF: return "!=";
+        case AST_LOGICO_COMP_IGUAL: return "==";
+        case AST_LOGICO_COMP_LE: return "<=";
+        case AST_LOGICO_COMP_GE: return ">=";
+        case AST_LOGICO_COMP_L: return "<";
+        case AST_LOGICO_COMP_G: return ">";
+        case AST_LOGICO_COMP_NEGACAO: return "!";
+        case AST_VETOR_INDEXADO: return "[]";
+        case AST_CHAMADA_DE_FUNCAO: return "call";
+        case AST_SHIFT_LEFT: return "<<";
+        case AST_SHIFT_RIGHT: return ">>";
+        case AST_BREAK: return "break";
+        case AST_CONTINUE: return "continue";
+        case AST_CASE: return "case";
+        case AST_FOR: return "for";
+        case AST_FOREACH: return "foreach";
+        case AST_SWITCH: return "switch";
+        case AST_ATRIBUTO: return ".";
+        case AST_ARIM_MOD: return "%";
+        case AST_ARIM_POT: return "^";
+        case AST_ENCADEAMENTO_PIPE: return "%|%";
+        case AST_ENCADEAMENTO_PIPEG: return "%>%";
+
+        default:
+            fprintf (stderr, "%s: tipo provided is invalid here\n", __FUNCTION__);
+            abort();
+    }
+    fprintf (stderr, "%s: should not get here\n", __FUNCTION__);
+    abort();
+}
+
+void build_symbol_rec(comp_tree_t* tree, symbol_t* symbol, int type){
+
+    comp_tree_t *ptr = tree;
+    do {
+        if (tree->value->symbol) {
+            strcat(symbol->lexeme, tree->value->symbol->lexeme);
+        }
+        else if (ptr->first != NULL){
+            build_symbol_rec(ptr->first, symbol, tree->value->type);
+        }
+        strcat(symbol->lexeme, _description_from_type(type));
+        ptr = ptr->next;
+        tree = ptr;
+    } while(ptr != NULL);
+}
+
+void build_symbol(comp_tree_t* tree){
+
+    if (tree->value->symbol)
+        return;
+
+    tree->value->symbol = calloc(1, sizeof(symbol_t));
+    tree->value->symbol->lexeme = malloc(sizeof(char)*1000);
+    tree->value->symbol->line = line_number;
+
+    build_symbol_rec(tree->first, tree->value->symbol, tree->value->type);
+
 }
