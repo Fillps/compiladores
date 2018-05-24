@@ -37,6 +37,11 @@ Coloque aqui qualquer comentário que achares pertinente.
 
 * Documentação
 
-Novos operadores
-- %|% - Ou exclusivo lógico
-- %>% - Rotate Right
+Novos códigos de erros
+- IKS_ERROR_ATTRIBUTE_UNDECLARED    Atributo de classe não declarado
+- IKS_ERROR_CLASS
+- IKS_ERROR_CLASS_UNDDECLARED       Classe não declarada
+- IKS_ERROR_INVALID_CONDITION       Condição de comando de controle de fluxo inválida (ex.: if(10) then{})
+- IKS_ERROR_INVALID_EXP             Expressão inválida (ex.: 10 + true)
+- IKS_ERROR_CHAR_TO_X               Tentativa de passar char a uma variável não-char
+- IKS_ERROR_STRING_TO_X             Tentativa de passar string a uma variável não-string
