@@ -1,6 +1,8 @@
-//
-// Created by filipe on 5/9/18.
-//
+/*
+Grupo Epsilon:
+  - Douglas Flores
+  - Filipe Santos
+*/
 
 #ifndef COMPILADOR_CC_SEMANTIC_H
 #define COMPILADOR_CC_SEMANTIC_H

@@ -1,5 +1,5 @@
 #+STARTUP: overview indent
-#+Title: Epsilon - Filipe Santos e Douglas Flores
+#+Title: Epsilon - Douglas Flores e Filipe Santos
 
 * Prerequisitos
 
@@ -15,8 +15,8 @@ Este programa depende das seguintes bibliotecas
 git clone git@github.com:schnorr/pc.git
 mkdir -p pc/build
 cd pc/build
-# Ativar compilação para a Etapa 2
-cmake -DE2=ON ..
+# Ativar compilação para a Etapa 5
+cmake -DE1=OFF -DE2=OFF -DE3=OFF -DE4=OFF -DE5=ON ..
 # Compilar
 make
 # Executar
@@ -28,7 +28,7 @@ make
 No diretório que tem o binário =main=, execute
 
 #+begin_src shell :results output
-ctest -R e1
+ctest -R e5
 #+end_src
 
 * Comentários
