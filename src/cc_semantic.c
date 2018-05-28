@@ -368,7 +368,7 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
 
         }
         else if (id_value->type[scope_stack[i]] != UNDECLARED)
-            wrong_type_error(class_var, "class variable", __type_description(id_value->type[GLOBAL_SCOPE]));
+            wrong_type_error(class_var, "class variable", __type_description(id_value->type[scope_stack[i]]));
 
     undeclared_error(class_var);
 }
