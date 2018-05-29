@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <main.h>
+#include "cc_code.h"
 #include "cc_dict.h"
 #include "cc_misc.h"
 #include "cc_tree.h"
@@ -45,6 +46,10 @@ void main_init (int argc, char **argv)
 {
     symbol_table = dict_new();
     scope_init();
+    if(argc > 2)
+        code_init(argv[2]);
+    else
+        code_init(NULL);
 }
 
 void main_finalize (void)
@@ -54,6 +59,7 @@ void main_finalize (void)
             free_symbol(dict_remove(symbol_table, (symbol_table->data[i])->key));
     dict_free(symbol_table);
     tree_free(ast);
+    code_close();
 }
 
 void comp_print_table (void)

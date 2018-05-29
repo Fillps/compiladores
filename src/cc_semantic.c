@@ -487,28 +487,28 @@ char* get_token_name(int token){
         case TK_OC_OR:
             name = "||";
             break;
-        case GREATER:
+        case SEM_GREATER:
             name = ">";
             break;
-        case LESSER:
+        case SEM_LESSER:
             name = "<";
             break;
-        case SUM:
+        case SEM_SUM:
             name = "+";
             break;
-        case SUB:
+        case SEM_SUB:
             name = "-";
             break;
-        case MULT:
+        case SEM_MULT:
             name = "*";
             break;
-        case DIV:
+        case SEM_DIV:
             name = "/";
             break;
-        case MOD:
+        case SEM_MOD:
             name = "%";
             break;
-        case POT:
+        case SEM_POT:
             name = "^";
             break;
         case TK_PR_IF:

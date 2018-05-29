@@ -73,11 +73,12 @@ Grupo Epsilon:
 #define CMP_GT  45
 #define CMP_NE  46
 
-typedef struct iloc{
-    char* label;        // Rótulo da instrução
-    operation_t* ops;   // Lista de operações
-    struct iloc *next, *prev;   //Lista de instruções
-}iloc_t;
+typedef struct operand{
+    int type;       // sendo REGISTER, NUMBER ou LABEL
+    char* lexeme;
+    struct operand *first, *last;
+    struct operand *next, *prev;
+}operand_t;
 
 typedef struct operation{
     int opcode;      // Código da operação
@@ -87,9 +88,13 @@ typedef struct operation{
     struct operation *next;   // Próxima operação
 }operation_t;
 
-typedef struct operand{
-    int type;       // sendo REGISTER, NUMBER ou LABEL
-    char* lexeme;
-    struct operand *first, *last;
-    struct operand *next, *prev;
-}operand_t;
+typedef struct iloc{
+    char* label;        // Rótulo da instrução
+    operation_t* ops;   // Lista de operações
+    struct iloc *next, *prev;   //Lista de instruções
+}iloc_t;
+
+void code_init(char* filename);
+void code_close();
+
+#endif
