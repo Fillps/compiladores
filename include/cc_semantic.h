@@ -52,14 +52,14 @@ Grupo Epsilon:
 #define ARITM           4   // expressões aritméticas
 
 /* Tokens de operadores simples */
-#define GREATER 1
-#define LESSER  2
-#define SUM     3
-#define SUB     4
-#define MULT    5
-#define DIV     6
-#define MOD     7
-#define POT     8
+#define SEM_GREATER 1
+#define SEM_LESSER  2
+#define SEM_SUM     3
+#define SEM_SUB     4
+#define SEM_MULT    5
+#define SEM_DIV     6
+#define SEM_MOD     7
+#define SEM_POT     8
 
 #define SCOPE_SIZE 1000
 #define PARAM_SIZE 100
