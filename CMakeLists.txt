@@ -16,10 +16,11 @@ ADD_EXECUTABLE(main
   src/cc_dict.c
   src/cc_list.c
   src/cc_tree.c
-        include/cc_semantic.h src/cc_semantic.c)
+  src/cc_semantic.c
+  src/cc_code.c)
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 
-ADD_EXECUTABLE(cc_dict_main_example src/cc_dict.c src/cc_dict_main_example.c include/cc_semantic.h src/cc_semantic.c)
+ADD_EXECUTABLE(cc_dict_main_example src/cc_dict.c src/cc_dict_main_example.c src/cc_semantic.c src/cc_code.c)
 
 ENABLE_TESTING()
 SET(i 0)
@@ -35,11 +36,11 @@ FOREACH(file ${tests})
   ADD_TEST(${etapa}_${testname} perl -I ./tests/scripts ./tests/scripts/tesh ${file})
 ENDFOREACH()
 
-OPTION(E1 "The Etapa 1 compilation" ON)
+OPTION(E1 "The Etapa 1 compilation" OFF)
 OPTION(E2 "The Etapa 2 compilation" OFF)
 OPTION(E3 "The Etapa 3 compilation" OFF)
 OPTION(E4 "The Etapa 4 compilation" OFF)
-OPTION(E5 "The Etapa 5 compilation" OFF)
+OPTION(E5 "The Etapa 5 compilation" ON)
 OPTION(E6 "The Etapa 6 compilation" OFF)
 OPTION(E7 "The Etapa 7 compilation" OFF)
 
