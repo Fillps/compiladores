@@ -68,7 +68,7 @@ void scope_init();
 void start_scope();
 void end_scope();
 
-void check_declared(symbol_t* symbol, int type);
+int check_declared(symbol_t* symbol);
 void declare(symbol_t* symbol, int type);
 void declare_function(symbol_t* symbol, int type);
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type);
@@ -79,11 +79,11 @@ void add_param(symbol_t* symbol, int type);
 void create_class_fields();
 void class_add_field(symbol_t* symbol, int type);
 
-void check_usage_variable(symbol_t* symbol);
-void check_usage_vector(symbol_t* symbol);
+void check_usage_variable(comp_tree_t* tree);
+void check_usage_vector(comp_tree_t* tree);
 void check_usage_function(comp_tree_t* tree);
-void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
-void check_var_assignment(symbol_t* var, int var_type, int exp_type);
+void check_usage_attribute(comp_tree_t* tree);
+void check_var_assignment(comp_tree_t* tree, int var_type, int exp_type);
 void check_condition(comp_tree_t* exp, int token);
 
 int get_var_type(symbol_t* var);

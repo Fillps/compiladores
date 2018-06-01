@@ -7,6 +7,9 @@ Grupo Epsilon:
 #ifndef COMPILADOR_CC_CODE_H
 #define COMPILADOR_CC_CODE_H
 
+#include "cc_misc.h"
+#include "cc_tree.h"
+
 // Tipos de operações
 #define NORMAL        1
 #define FLUX_CONTROL  2
@@ -17,84 +20,81 @@ Grupo Epsilon:
 #define LABEL     3
 
 /* Código de Operações*/
-#define NOP   0
+#define ILOC_NOP   0
 //aritméticas
-#define ADD     1
-#define SUB     2
-#define MULT    3
-#define DIV     4
-#define ADDI    5
-#define SUBI    6
-#define RSUBI   7
-#define MULTI   8
-#define DIVI    9
-#define RDIVI   10
+#define ILOC_ADD     1
+#define ILOC_SUB     2
+#define ILOC_MULT    3
+#define ILOC_DIV     4
+#define ILOC_ADDI    5
+#define ILOC_SUBI    6
+#define ILOC_RSUBI   7
+#define ILOC_MULTI   8
+#define ILOC_DIVI    9
+#define ILOC_RDIVI   10
 //shifts
-#define LSHIFT    11
-#define LSHIFTI   12
-#define RSHIFT    13
-#define RSHIFTI   14
+#define ILOC_LSHIFT    11
+#define ILOC_LSHIFTI   12
+#define ILOC_RSHIFT    13
+#define ILOC_RSHIFTI   14
 //lógicas
-#define AND   15
-#define ANDI  16
-#define OR    17
-#define ORI   18
-#define XOR   19
-#define XORI  20
+#define ILOC_AND   15
+#define ILOC_ANDI  16
+#define ILOC_OR    17
+#define ILOC_ORI   18
+#define ILOC_XOR   19
+#define ILOC_XORI  20
 //carga de registradores
-#define LOADI 21
+#define ILOC_LOADI 21
 //operações sobre a memória
-#define LOAD      22
-#define LOADAI    23
-#define LOADA0    24
-#define CLOAD     25
-#define CLOADAI   26
-#define CLOADA0   27
-#define STORE     28
-#define STOREAI   29
-#define STOREA0   30
-#define CSTORE    31
-#define CSTOREAI  32
-#define CSTOREA0  33
+#define ILOC_LOAD      22
+#define ILOC_LOADAI    23
+#define ILOC_LOADA0    24
+#define ILOC_CLOAD     25
+#define ILOC_CLOADAI   26
+#define ILOC_CLOADA0   27
+#define ILOC_STORE     28
+#define ILOC_STOREAI   29
+#define ILOC_STOREA0   30
+#define ILOC_CSTORE    31
+#define ILOC_CSTOREAI  32
+#define ILOC_CSTOREA0  33
 //cópia entre registradores
-#define I2I   34
-#define C2C   35
-#define C2I   36
-#define I2C   37
+#define ILOC_I2I   34
+#define ILOC_C2C   35
+#define ILOC_C2I   36
+#define ILOC_I2C   37
 //saltos
-#define JUMPI   38
-#define JUMP    39
+#define ILOC_JUMPI   38
+#define ILOC_JUMP    39
 //fluxo de controle
-#define CBR     40
-#define CMP_LT  41
-#define CMP_LE  42
-#define CMP_EQ  43
-#define CMP_GE  44
-#define CMP_GT  45
-#define CMP_NE  46
-
-typedef struct operand{
-    int type;       // sendo REGISTER, NUMBER ou LABEL
-    char* lexeme;
-    struct operand *first, *last;
-    struct operand *next, *prev;
-}operand_t;
-
-typedef struct operation{
-    int opcode;      // Código da operação
-    int type;        // sendo NORMAL ou FLUX_CONTROL
-    operand_t* op_sources;    // Operadores fonte
-    operand_t* op_targets;    // Operadores alvo
-    struct operation *next;   // Próxima operação
-}operation_t;
+#define ILOC_CBR     40
+#define ILOC_CMP_LT  41
+#define ILOC_CMP_LE  42
+#define ILOC_CMP_EQ  43
+#define ILOC_CMP_GE  44
+#define ILOC_CMP_GT  45
+#define ILOC_CMP_NE  46
 
 typedef struct iloc{
-    char* label;        // Rótulo da instrução
-    operation_t* ops;   // Lista de operações
-    struct iloc *next, *prev;   //Lista de instruções
+    int type;
+    char* op1;
+    char* op2;
+    char* op3;
+    struct iloc* prev;
+    struct iloc* next;
 }iloc_t;
 
-void code_init(char* filename);
+void code_init(const char* filename);
 void code_close();
+void build_iloc_code(comp_tree_t* tree);
+iloc_t* create_iloc(int type, char* op1, char* op2, char* op3);
+iloc_t* code_generator(comp_tree_t* tree);
+iloc_t* append_iloc(iloc_t* iloc1, iloc_t* iloc2);
+void print_iloc(iloc_t* iloc);
+void print_iloc_list(iloc_t* iloc);
+iloc_t* invert_iloc_list(iloc_t* last);
+
+
 
 #endif

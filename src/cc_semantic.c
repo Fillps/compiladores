@@ -206,12 +206,12 @@ void invalid_condition_error(comp_tree_t* exp_tree, char* comand, char* correct_
     exit(IKS_ERROR_INVALID_CONDITION);
 }
 
-void check_declared(symbol_t* symbol, int type){
+int check_declared(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0 ; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            return;
+            return i;
 
     undeclared_error(symbol);
 }
@@ -270,38 +270,42 @@ void declare_class(symbol_t* symbol){
     value->decl_info[GLOBAL_SCOPE] = class_info;
 }
 
-void check_usage_variable(symbol_t* symbol){
-    id_value_t* value = symbol->value;
+void check_usage_variable(comp_tree_t* tree){
+    id_value_t* value = tree->value->symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_vector(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_vector(POA_LIT_BOOL))
-                vector_error(symbol);
+                vector_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_FUNCTION)
-                function_error(symbol);
+                function_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_CLASS)
-                class_error(symbol);
-            else
+                class_error(tree->value->symbol);
+            else{
+                tree->value->var_scope = i;
                 return;
+            }
 
-    undeclared_error(symbol);
+    undeclared_error(tree->value->symbol);
 }
 
-void check_usage_vector(symbol_t* symbol){
-    id_value_t* value = symbol->value;
+void check_usage_vector(comp_tree_t* tree){
+    id_value_t* value = tree->value->symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_variable(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_variable(POA_IDENT))
-                variable_error(symbol);
+                variable_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_FUNCTION)
-                function_error(symbol);
+                function_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_CLASS)
-                class_error(symbol);
-            else
+                class_error(tree->value->symbol);
+            else{
+                tree->value->var_scope = i;
                 return;
+            }
 
-    undeclared_error(symbol);
+    undeclared_error(tree->value->symbol);
 }
 
 void check_usage_function(comp_tree_t* tree){
@@ -345,13 +349,16 @@ void check_usage_function(comp_tree_t* tree){
     undeclared_error(symbol);
 }
 
-void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
+void check_usage_attribute(comp_tree_t* tree){
+    symbol_t* class_var = tree->first->value->symbol;
+    symbol_t* attribute = tree->last->value->symbol;
     id_value_t* id_value = (id_value_t *) class_var->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
             symbol_t* class = ((symbol_t *)id_value->decl_info[scope_stack[i]]);
             id_value_t* class_value = (id_value_t*)class->value;
+            tree->value->var_scope = i;
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
                 class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
@@ -461,9 +468,9 @@ int get_func_type(comp_tree_t* tree){
     return func_type;
 }
 
-void check_var_assignment(symbol_t* var, int var_type, int exp_type){
+void check_var_assignment(comp_tree_t* var, int var_type, int exp_type){
     if(var_type != exp_type)
-        wrong_type_assignment(var, var_type, exp_type);
+        wrong_type_assignment(var->value->symbol, var_type, exp_type);
 }
 
 char* get_token_name(int token){
@@ -553,7 +560,7 @@ void check_condition(comp_tree_t* exp, int token){
 }
 
 void set_unary_node_value_type(comp_tree_t* node, int value_type){
-		node->value->value_type = value_type;
+	node->value->value_type = value_type;
 }
 
 void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){
