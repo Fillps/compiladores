@@ -101,7 +101,7 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LOGICO_E:
         case AST_LOGICO_COMP_L:
         case AST_LOGICO_COMP_G:
-        case AST_LOGICO_COMP_NEGACAO:
+        case AST_LOGICO_COMP_DIF:
         case AST_LOGICO_COMP_LE:
         case AST_LOGICO_COMP_GE:
         case AST_LOGICO_COMP_IGUAL:
@@ -158,7 +158,7 @@ int ast_to_iloc (int type)
         case AST_LOGICO_E: return ILOC_AND;
         case AST_LOGICO_COMP_L: return ILOC_CMP_LT;
         case AST_LOGICO_COMP_G: return ILOC_CMP_GT;
-        case AST_LOGICO_COMP_NEGACAO: return ILOC_CMP_NE;
+        case AST_LOGICO_COMP_DIF: return ILOC_CMP_NE;
         case AST_LOGICO_COMP_LE: return ILOC_CMP_LE;
         case AST_LOGICO_COMP_GE: return ILOC_CMP_GE;
         case AST_LOGICO_COMP_IGUAL: return ILOC_CMP_EQ;
