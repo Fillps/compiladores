@@ -374,7 +374,7 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
 }
 
 void create_params(){
-    function_info = malloc(sizeof(function_info_t));
+    function_info = calloc(1, sizeof(function_info_t));
     function_info->params_length = 0;
 }
 

@@ -61,31 +61,8 @@ Grupo Epsilon:
 #define SEM_MOD     7
 #define SEM_POT     8
 
-#define SCOPE_SIZE 1000
-#define PARAM_SIZE 100
-#define FIELD_SIZE 100
 #define UNDECLARED 0
 #define GLOBAL_SCOPE 0
-
-typedef struct id_value{
-    void* value[SCOPE_SIZE];
-    int type[SCOPE_SIZE];
-    void* decl_info[SCOPE_SIZE];
-    int scope_length;
-}id_value_t;
-
-typedef struct function_info{
-    int type;
-    int param_type[PARAM_SIZE];
-    symbol_t* param_id[PARAM_SIZE];
-    int params_length;
-}function_info_t;
-
-typedef struct class_info{
-    int field_type[FIELD_SIZE];
-    symbol_t* field_id[FIELD_SIZE];
-    int field_length;
-}class_info_t;
 
 void scope_init();
 void start_scope();

@@ -114,9 +114,7 @@ int main_avaliacao_etapa_2 (int argc, char **argv)
 
 int main_avaliacao_etapa_3 (int argc, char **argv)
 {
-  gv_init(GV_OUTPUT);
   int ret = yyparse();
-  gv_close();
   return ret;
 }
 
