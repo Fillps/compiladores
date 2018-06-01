@@ -277,7 +277,7 @@ iloc_t* invert_iloc_list(iloc_t* last){
 }
 
 void print_iloc_list(iloc_t* iloc){
-    for(iloc_t* i = iloc; iloc != NULL; iloc = iloc->next)
+    for(iloc_t* i = iloc; iloc != NULL; i = i->next)
         print_iloc(i);
 }
 
