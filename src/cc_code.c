@@ -125,11 +125,15 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_ATRIBUICAO:
             ret = append_iloc(
-                    cc[1],
-                    create_iloc(ILOC_STOREAI,
-                                cc[1] ? cc[1]->op3 : NULL,
-                                get_especial_reg(tree->first),
-                                tree->first->value->symbol->lexeme));
+                    append_iloc(
+                            cc[1],
+                            create_iloc(
+                                    ILOC_STOREAI,
+                                    cc[1] ? cc[1]->op3 : NULL,
+                                    get_especial_reg(tree->first),
+                                    tree->first->value->symbol->lexeme)),
+                    cc[2]
+                    );
             break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -155,7 +159,7 @@ char* get_especial_reg(comp_tree_t* tree){
     if (tree->value->var_scope == GLOBAL_SCOPE)
         return "rbss";
     else
-        return "fp";
+        return "rarp";
 }
 
 int ast_to_iloc (int type)
@@ -206,53 +210,53 @@ iloc_t* append_iloc(iloc_t* iloc1, iloc_t* iloc2){
 static inline char *__iloc_instructions (int type)
 {
     switch (type){
-        case ILOC_NOP: return "NOP";
-        case ILOC_ADD: return "ADD";
-        case ILOC_SUB: return "SUB";
-        case ILOC_MULT: return "MULT";
-        case ILOC_DIV: return "DIV";
-        case ILOC_ADDI: return "ADDI";
-        case ILOC_SUBI: return "SUBI";
-        case ILOC_RSUBI: return "RSUBI";
-        case ILOC_MULTI: return "MULTI";
-        case ILOC_DIVI: return "DIVI";
-        case ILOC_RDIVI: return "RDIVI";
-        case ILOC_LSHIFT: return "LSHIFT";
-        case ILOC_LSHIFTI: return "LSHIFTI";
-        case ILOC_RSHIFT: return "RSHIFT";
-        case ILOC_RSHIFTI: return "RSHIFTI";
-        case ILOC_AND: return "AND";
-        case ILOC_ANDI: return "ANDI";
-        case ILOC_OR: return "OR";
-        case ILOC_ORI: return "ORI";
-        case ILOC_XOR: return "XOR";
-        case ILOC_XORI: return "XORI";
-        case ILOC_LOADI: return "LOADI";
-        case ILOC_LOAD: return "LOAD";
-        case ILOC_LOADAI: return "LOADAI";
-        case ILOC_LOADA0: return "LOADA0";
-        case ILOC_CLOAD: return "CLOAD";
-        case ILOC_CLOADAI: return "CLOADAI";
-        case ILOC_CLOADA0: return "CLOADA0";
-        case ILOC_STORE: return "STORE";
-        case ILOC_STOREAI: return "STOREAI";
-        case ILOC_STOREA0: return "STOREA0";
-        case ILOC_CSTORE: return "CSTORE";
-        case ILOC_CSTOREAI: return "CSTOREAI";
-        case ILOC_CSTOREA0: return "CSTOREA0";
-        case ILOC_I2I: return "I2I";
-        case ILOC_C2I: return "C2I";
-        case ILOC_C2C: return "C2C";
-        case ILOC_I2C: return "I2C";
-        case ILOC_JUMPI: return "JUMPI";
-        case ILOC_JUMP: return "JUMP";
-        case ILOC_CBR: return "CBR";
-        case ILOC_CMP_LT: return "CMP_LT";
-        case ILOC_CMP_LE: return "CMP_LE";
-        case ILOC_CMP_EQ: return "CMP_EQ";
-        case ILOC_CMP_GE: return "CMP_GE";
-        case ILOC_CMP_GT: return "CMP_GT";
-        case ILOC_CMP_NE: return "CMP_NE";
+        case ILOC_NOP: return "nop";
+        case ILOC_ADD: return "add";
+        case ILOC_SUB: return "sub";
+        case ILOC_MULT: return "mult";
+        case ILOC_DIV: return "div";
+        case ILOC_ADDI: return "addI";
+        case ILOC_SUBI: return "subI";
+        case ILOC_RSUBI: return "rsubI";
+        case ILOC_MULTI: return "multI";
+        case ILOC_DIVI: return "divI";
+        case ILOC_RDIVI: return "rdivI";
+        case ILOC_LSHIFT: return "lshift";
+        case ILOC_LSHIFTI: return "lshiftI";
+        case ILOC_RSHIFT: return "rshift";
+        case ILOC_RSHIFTI: return "rshiftI";
+        case ILOC_AND: return "and";
+        case ILOC_ANDI: return "andI";
+        case ILOC_OR: return "or";
+        case ILOC_ORI: return "orI";
+        case ILOC_XOR: return "xor";
+        case ILOC_XORI: return "xorI";
+        case ILOC_LOADI: return "loadI";
+        case ILOC_LOAD: return "load";
+        case ILOC_LOADAI: return "loadAI";
+        case ILOC_LOADA0: return "loadA0";
+        case ILOC_CLOAD: return "cload";
+        case ILOC_CLOADAI: return "cloadAI";
+        case ILOC_CLOADA0: return "cloadA0";
+        case ILOC_STORE: return "store";
+        case ILOC_STOREAI: return "storeAI";
+        case ILOC_STOREA0: return "storeA0";
+        case ILOC_CSTORE: return "cstore";
+        case ILOC_CSTOREAI: return "cstoreAI";
+        case ILOC_CSTOREA0: return "cstoreA0";
+        case ILOC_I2I: return "i2i";
+        case ILOC_C2I: return "c2i";
+        case ILOC_C2C: return "c2c";
+        case ILOC_I2C: return "i2c";
+        case ILOC_JUMPI: return "jumpI";
+        case ILOC_JUMP: return "jump";
+        case ILOC_CBR: return "cbr";
+        case ILOC_CMP_LT: return "cmp_LT";
+        case ILOC_CMP_LE: return "cmp_LE";
+        case ILOC_CMP_EQ: return "cmp_EQ";
+        case ILOC_CMP_GE: return "cmp_GE";
+        case ILOC_CMP_GT: return "cmp_GT";
+        case ILOC_CMP_NE: return "cmp_NE";
 
         default:
             fprintf (stderr, "%s: type provided is invalid here\n", __FUNCTION__);
@@ -266,9 +270,20 @@ void print_iloc(iloc_t* iloc){
 
     fprintf(cfp, "%s ", __iloc_instructions(iloc->type));
 
-    if(iloc->op1) fprintf(cfp, "%s ", iloc->op1);
-    if(iloc->op2) fprintf(cfp, "%s ", iloc->op2);
-    if(iloc->op3) fprintf(cfp, "%s ", iloc->op3);
+    switch (iloc->type){
+        case ILOC_STORE:
+        case ILOC_STOREAI:
+        case ILOC_STOREA0:
+            if(iloc->op1) fprintf(cfp, "%s => ", iloc->op1);
+            if(iloc->op2) fprintf(cfp, "%s, ", iloc->op2);
+            if(iloc->op3) fprintf(cfp, "%s ", iloc->op3);
+            break;
+        default:
+            if(iloc->op1) fprintf(cfp, "%s", iloc->op1);
+            if(iloc->op2) fprintf(cfp, ", %s", iloc->op2);
+            if(iloc->op3) fprintf(cfp, " => %s ", iloc->op3);
+    }
+
 
     fprintf(cfp, "\n");
 }
