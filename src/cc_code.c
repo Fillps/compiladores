@@ -14,6 +14,8 @@ Grupo Epsilon:
 #include "cc_tree.h"
 
 static FILE *cfp = NULL;
+iloc_t** iloc_list;
+int iloc_list_length;
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
@@ -23,6 +25,8 @@ iloc_t* create_iloc_while(iloc_t* code0, iloc_t* code1);
 iloc_t* makeFun(symbol_t* funSymbol, iloc_t* code3);
 void updateFuncArgs(iloc_t* func, symbol_t* symbol);
 iloc_t* append_iloc_list(iloc_t* iloc_list[], int length);
+void free_iloc_list();
+static inline char *__iloc_instructions (int type);
 
 void code_init(const char *filename)
 {
@@ -54,8 +58,13 @@ void code_close(){
     }
 }
 
+#define MAX_ILOC 10000
+
 void build_iloc_code(comp_tree_t* tree){
+    iloc_list = calloc(MAX_ILOC, sizeof(iloc_t*));
+    iloc_list_length = 0;
     print_iloc_list(invert_iloc_list(code_generator(tree)));
+    free_iloc_list();
 }
 
 iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
@@ -67,6 +76,8 @@ iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
     iloc->op3 = op3;
     iloc->prev = NULL;
     iloc->next = NULL;
+
+    iloc_list[iloc_list_length++] = iloc;
 
     return iloc;
 }
@@ -116,9 +127,9 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = append_iloc(
                     cc[1],
                     create_iloc(ILOC_STOREAI,
-                                tree->first->value->symbol->lexeme,
                                 cc[1] ? cc[1]->op3 : NULL,
-                                get_especial_reg(tree->first)));
+                                get_especial_reg(tree->first),
+                                tree->first->value->symbol->lexeme));
             break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -277,7 +288,12 @@ iloc_t* invert_iloc_list(iloc_t* last){
 }
 
 void print_iloc_list(iloc_t* iloc){
-    for(iloc_t* i = iloc; iloc != NULL; i = i->next)
+    for(iloc_t* i = iloc; i != NULL; i = i->next)
         print_iloc(i);
+}
+
+void free_iloc_list(){
+    for(int i = 0; i < iloc_list_length; i++)
+        free(iloc_list[i]);
 }
 

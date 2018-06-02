@@ -12,8 +12,8 @@ extern int line_number;
 extern comp_tree_t* ast;
 
 comp_dict_t* symbol_table;
-
-
+char** tmp_list;
+int tmp_list_length;
 
 void create_int(symbol_t* symbol, char* key, char* lexeme, int length);
 void create_float(symbol_t* symbol, char* key, char* lexeme, int length);
@@ -45,6 +45,8 @@ void main_init (int argc, char **argv)
 {
     symbol_table = dict_new();
     scope_init();
+    tmp_list = calloc(DICT_SIZE, sizeof(char));
+    tmp_list_length = 0;
     gv_init(GV_OUTPUT);
     if(argc > 2)
         code_init(argv[2]);
@@ -59,6 +61,8 @@ void main_finalize (void)
             free_symbol(dict_remove(symbol_table, (symbol_table->data[i])->key));
     dict_free(symbol_table);
     tree_free(ast);
+    for (int i = 0; i < tmp_list_length; i++)
+        free(tmp_list[i]);
     gv_close();
     code_close();
 }
@@ -197,6 +201,8 @@ char* create_reg(){
     regName = (char *)calloc(256, sizeof(char));
     sprintf(regName, "r%d", regNumber++);
 
+    tmp_list[tmp_list_length++] = regName;
+
     return regName;
 }
 
@@ -205,6 +211,8 @@ char* crate_label(){
     char *labelName;
     labelName = (char *)calloc(256, sizeof(char));
     sprintf(labelName, "label%d", labelNumber++);
+
+    tmp_list[tmp_list_length++] = labelName;
 
     return labelName;
 }
