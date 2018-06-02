@@ -217,7 +217,19 @@ char* crate_label(){
     return labelName;
 }
 
+int get_global_address(int size){
+    static int address = 0;
+    int tmp = address;
+    address += size;
+    return tmp;
+}
 
+int get_local_address(int size){
+    static int address = 0;
+    int tmp = address;
+    address += size;
+    return tmp;
+}
 
 
 

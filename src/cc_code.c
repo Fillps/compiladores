@@ -27,6 +27,7 @@ void updateFuncArgs(iloc_t* func, symbol_t* symbol);
 iloc_t* append_iloc_list(iloc_t* iloc_list[], int length);
 void free_iloc_list();
 static inline char *__iloc_instructions (int type);
+char* get_char_address(comp_tree_t *tree);
 
 void code_init(const char *filename)
 {
@@ -101,7 +102,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = create_iloc(
                     ILOC_LOADAI,
                     get_especial_reg(tree),
-                    tree->value->symbol->lexeme,
+                    get_char_address(tree),
                     create_reg());
             break;
         case AST_ARIM_SOMA:
@@ -131,7 +132,7 @@ iloc_t* code_generator(comp_tree_t *tree){
                                     ILOC_STOREAI,
                                     cc[1] ? cc[1]->op3 : NULL,
                                     get_especial_reg(tree->first),
-                                    tree->first->value->symbol->lexeme)),
+                                    get_char_address(tree->first))),
                     cc[2]
                     );
             break;
@@ -312,3 +313,8 @@ void free_iloc_list(){
         free(iloc_list[i]);
 }
 
+char* get_char_address(comp_tree_t *tree){
+    char* address = malloc(20*sizeof(char));
+    sprintf(address, "%i", tree->value->address);
+    return address;
+}

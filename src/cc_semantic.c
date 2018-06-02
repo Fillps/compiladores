@@ -4,6 +4,7 @@ Grupo Epsilon:
   - Filipe Silva
 */
 #include <stdlib.h>
+#include <string.h>
 #include "cc_semantic.h"
 #include "cc_dict.h"
 #include "parser.h"
@@ -233,7 +234,31 @@ void declare(symbol_t* symbol, int type){
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
+    if (type == decl_variable(POA_LIT_STRING))
+        value->address[current_scope] = -1;
+    else if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(1);
+    else
+        value->address[current_scope] = get_local_address(1);
+
     value->type[current_scope] = type;
+}
+
+void declare_vector(symbol_t* symbol, int type, int* size){
+    id_value_t* value = symbol->value;
+
+    if (value->type[current_scope] != UNDECLARED)
+        declared_error(symbol);
+
+    if (type == decl_vector(POA_LIT_STRING))
+        value->address[current_scope] = -1; //TODO pensar qual é a melhor forma de resolver a string(nao sabemos qual é o tamanho dela na declaracao)
+    else if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(*size);
+    else
+        value->address[current_scope] = get_local_address(*size);
+
+    value->type[current_scope] = type;
+    value->decl_info[current_scope] = size;
 }
 
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
@@ -245,9 +270,13 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
+    //TODO value->address[current_scope] calculando o tamanho da classe
+
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
 }
+
+//TODO criar nova funcao q declara vetores de nao primitivos.
 
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;
@@ -282,7 +311,8 @@ void check_usage_variable(comp_tree_t* tree){
             else if (value->type[scope_stack[i]] == DECL_CLASS)
                 class_error(tree->value->symbol);
             else{
-                tree->value->var_scope = i;
+                tree->value->var_scope = scope_stack[i];
+                tree->value->address = value->address[scope_stack[i]];
                 return;
             }
 
@@ -301,7 +331,8 @@ void check_usage_vector(comp_tree_t* tree){
             else if (value->type[scope_stack[i]] == DECL_CLASS)
                 class_error(tree->value->symbol);
             else{
-                tree->value->var_scope = i;
+                tree->value->var_scope = scope_stack[i];
+                tree->value->address = value->address[scope_stack[i]];
                 return;
             }
 
@@ -358,7 +389,8 @@ void check_usage_attribute(comp_tree_t* tree){
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
             symbol_t* class = ((symbol_t *)id_value->decl_info[scope_stack[i]]);
             id_value_t* class_value = (id_value_t*)class->value;
-            tree->value->var_scope = i;
+            tree->value->var_scope = scope_stack[i];
+            tree->value->address = id_value->address[scope_stack[i]];
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
                 class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];

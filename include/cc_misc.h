@@ -33,6 +33,7 @@ typedef struct id_value{
     void* value[SCOPE_SIZE];
     int type[SCOPE_SIZE];
     void* decl_info[SCOPE_SIZE];
+    int address[SCOPE_SIZE];
 }id_value_t;
 
 typedef struct tmp_value{
@@ -61,6 +62,7 @@ symbol_t* insert_symbol(int token, char* lexeme, int lengh);
 
 char* create_reg();
 char* crate_label();
-
+int get_global_address(int size);
+int get_local_address(int size);
 
 #endif

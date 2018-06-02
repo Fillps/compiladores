@@ -110,7 +110,7 @@ comp_tree_t* ast;
 %type <ast>funcoes_encadeadas
 
 %type <type>tipo
-%type <type>vetor_global
+%type <valor_lexico>vetor_global
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -193,7 +193,7 @@ var_global:
                                                                         if($4 == FALSE)
                                                                             declare($3, decl_variable($2));
                                                                         else
-                                                                            declare($3, decl_vector($2));
+                                                                            declare_vector($3, decl_vector($2), (int*)$4->value);
                                                                     }
     | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';' {
                                                                         check_declared($2);
@@ -209,7 +209,7 @@ static_opc:
 
 vetor_global:
     %empty                  { $$ = FALSE; }
-    | '[' TK_LIT_INT ']'    { $$ = POA_LIT_INT; };
+    | '[' TK_LIT_INT ']'    { $$ = $2; };
 
 /* Função */
 funcao:

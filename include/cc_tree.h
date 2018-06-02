@@ -24,6 +24,7 @@ typedef struct nodeAST{
     int type;
     int value_type;
     int var_scope;
+    int address;
     symbol_t *symbol;
 }nodeAST;
 
