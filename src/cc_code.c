@@ -395,5 +395,6 @@ void free_iloc_list(){
 char* get_char_address(comp_tree_t *tree){
     char* address = malloc(20*sizeof(char));
     sprintf(address, "%i", tree->value->address);
+    add_to_tmp_list(address);
     return address;
 }

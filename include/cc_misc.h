@@ -64,9 +64,10 @@ void main_finalize (void);
 symbol_t* insert_symbol(int token, char* lexeme, int lengh);
 
 char* create_reg();
-char* crate_label();
+char* create_label();
 int get_global_address(int size);
 int get_local_address(int size);
 char* insert_minus_in_str(char* str);
+void add_to_tmp_list(void *item);
 
 #endif

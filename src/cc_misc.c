@@ -12,7 +12,7 @@ extern int line_number;
 extern comp_tree_t* ast;
 
 comp_dict_t* symbol_table;
-char** tmp_list;
+void** tmp_list;
 int tmp_list_length;
 
 void create_int(symbol_t* symbol, char* key, char* lexeme, int length);
@@ -21,7 +21,7 @@ void create_char(symbol_t* symbol, char* key, char* lexeme, int length);
 void create_string(symbol_t* symbol, char* key, char* lexeme, int length);
 void create_bool(symbol_t* symbol, char* key, int bool, char* lexeme, int length);
 void create_id(symbol_t* symbol, char* key, char* lexeme, int length);
-void create_tmp(symbol_t* symbol, char* key, int type, char* lexeme, int length);
+void add_to_tmp_list(void *item);
 
 void scope_init();
 
@@ -201,18 +201,18 @@ char* create_reg(){
     regName = (char *)calloc(256, sizeof(char));
     sprintf(regName, "r%d", regNumber++);
 
-    tmp_list[tmp_list_length++] = regName;
+    add_to_tmp_list(regName);
 
     return regName;
 }
 
-char* crate_label(){
+char* create_label(){
     static int labelNumber = 0;
     char *labelName;
     labelName = (char *)calloc(256, sizeof(char));
     sprintf(labelName, "label%d", labelNumber++);
 
-    tmp_list[tmp_list_length++] = labelName;
+    add_to_tmp_list(labelName);
 
     return labelName;
 }
@@ -236,9 +236,13 @@ char* insert_minus_in_str(char* str){
     minus_str[0] = '-';
     strcpy(minus_str+1, str);
 
-    tmp_list[tmp_list_length++] = minus_str;
+    add_to_tmp_list(minus_str);
 
     return minus_str;
+}
+
+void add_to_tmp_list(void *item){
+    tmp_list[tmp_list_length++] = item;
 }
 
 
