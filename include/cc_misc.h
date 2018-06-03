@@ -67,5 +67,6 @@ char* create_reg();
 char* crate_label();
 int get_global_address(int size);
 int get_local_address(int size);
+char* insert_minus_in_str(char* str);
 
 #endif

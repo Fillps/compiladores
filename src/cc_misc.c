@@ -231,5 +231,14 @@ int get_local_address(int size){
     return tmp;
 }
 
+char* insert_minus_in_str(char* str){
+    char* minus_str = malloc(sizeof(char)*(strlen(str)+1));
+    minus_str[0] = '-';
+    strcpy(minus_str+1, str);
+
+    tmp_list[tmp_list_length++] = minus_str;
+
+    return minus_str;
+}
 
 

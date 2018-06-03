@@ -7,6 +7,7 @@ Grupo Epsilon:
 #include <stdio.h>
 #include <stdlib.h>
 #include <cc_semantic.h>
+#include <string.h>
 
 #include "cc_code.h"
 #include "cc_misc.h"
@@ -112,12 +113,19 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = vetor_indexando_iloc(tree, cc);
             break;
         case AST_ARIM_INVERSAO:
-            ret = append_iloc(
-                    cc[0], create_iloc(
-                            ILOC_RSUBI,
-                            cc[0]->op3,
-                            "0",
-                            create_reg()));
+            if (tree->first->value->type == AST_LITERAL)
+                ret = create_iloc(
+                        ILOC_LOADI,
+                        insert_minus_in_str(tree->first->value->symbol->lexeme),
+                        NULL,
+                        create_reg());
+            else
+                ret = append_iloc(
+                        cc[0], create_iloc(
+                                ILOC_RSUBI,
+                                cc[0]->op3,
+                                "0",
+                                create_reg()));
             break;
         case AST_ARIM_SOMA:
         case AST_ARIM_MULTIPLICACAO:
