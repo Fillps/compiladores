@@ -49,16 +49,16 @@ Grupo Epsilon:
 //operações sobre a memória
 #define ILOC_LOAD      22
 #define ILOC_LOADAI    23
-#define ILOC_LOADA0    24
+#define ILOC_LOADAO    24
 #define ILOC_CLOAD     25
 #define ILOC_CLOADAI   26
-#define ILOC_CLOADA0   27
+#define ILOC_CLOADAO   27
 #define ILOC_STORE     28
 #define ILOC_STOREAI   29
-#define ILOC_STOREA0   30
+#define ILOC_STOREAO   30
 #define ILOC_CSTORE    31
 #define ILOC_CSTOREAI  32
-#define ILOC_CSTOREA0  33
+#define ILOC_CSTOREAO  33
 //cópia entre registradores
 #define ILOC_I2I   34
 #define ILOC_C2C   35

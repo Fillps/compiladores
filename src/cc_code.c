@@ -28,6 +28,9 @@ iloc_t* append_iloc_list(iloc_t* iloc_list[], int length);
 void free_iloc_list();
 static inline char *__iloc_instructions (int type);
 char* get_char_address(comp_tree_t *tree);
+iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc);
+iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc);
+
 
 void code_init(const char *filename)
 {
@@ -105,6 +108,9 @@ iloc_t* code_generator(comp_tree_t *tree){
                     get_char_address(tree),
                     create_reg());
             break;
+        case AST_VETOR_INDEXADO:
+            ret = vetor_indexando_iloc(tree, cc);
+            break;
         case AST_ARIM_SOMA:
         case AST_ARIM_MULTIPLICACAO:
         case AST_ARIM_SUBTRACAO:
@@ -125,16 +131,7 @@ iloc_t* code_generator(comp_tree_t *tree){
                                 create_reg()));
             break;
         case AST_ATRIBUICAO:
-            ret = append_iloc(
-                    append_iloc(
-                            cc[1],
-                            create_iloc(
-                                    ILOC_STOREAI,
-                                    cc[1] ? cc[1]->op3 : NULL,
-                                    get_especial_reg(tree->first),
-                                    get_char_address(tree->first))),
-                    cc[2]
-                    );
+            ret = atribuicao_iloc(tree, cc);
             break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -142,6 +139,48 @@ iloc_t* code_generator(comp_tree_t *tree){
 
     free(cc);
     return ret;
+}
+
+iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){
+    iloc_t* address_iloc = create_iloc(ILOC_ADDI,
+                                       cc[1]->op3,
+                                       get_char_address(tree->first),
+                                       create_reg());
+    return append_iloc(
+            append_iloc(cc[1],
+                        address_iloc),
+            create_iloc(ILOC_LOADAI,
+                        get_especial_reg(tree),
+                        get_char_address(tree),
+                        create_reg()));
+}
+
+iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
+    int op;
+    iloc_t* address_iloc;
+    char* address;
+    if (tree->first->value->type == AST_VETOR_INDEXADO){
+        cc[0] = cc[0]->prev; // o ultimo iloc de um vetor indexado é o LOADAI, sendo o penultimo o calculo do ender
+        cc[0]->next = NULL;  // remove o LOADAI deixando o calculo do ender como o ultimo iloc
+        address_iloc = cc[0];
+        address = address_iloc->op3;
+        op = ILOC_STOREAO;
+    }
+    else{
+        address_iloc = NULL;
+        address = get_char_address(tree->first);
+        op = ILOC_STOREAI;
+    }
+
+    return append_iloc(
+            address_iloc,
+            append_iloc(
+                    append_iloc(cc[1],
+                                create_iloc(op,
+                                            cc[1] ? cc[1]->op3 : NULL,
+                                            get_especial_reg(tree->first),
+                                            address)),
+                    cc[2]));
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){
@@ -235,16 +274,16 @@ static inline char *__iloc_instructions (int type)
         case ILOC_LOADI: return "loadI";
         case ILOC_LOAD: return "load";
         case ILOC_LOADAI: return "loadAI";
-        case ILOC_LOADA0: return "loadA0";
+        case ILOC_LOADAO: return "loadAO";
         case ILOC_CLOAD: return "cload";
         case ILOC_CLOADAI: return "cloadAI";
-        case ILOC_CLOADA0: return "cloadA0";
+        case ILOC_CLOADAO: return "cloadAO";
         case ILOC_STORE: return "store";
         case ILOC_STOREAI: return "storeAI";
-        case ILOC_STOREA0: return "storeA0";
+        case ILOC_STOREAO: return "storeAO";
         case ILOC_CSTORE: return "cstore";
         case ILOC_CSTOREAI: return "cstoreAI";
-        case ILOC_CSTOREA0: return "cstoreA0";
+        case ILOC_CSTOREAO: return "cstoreAO";
         case ILOC_I2I: return "i2i";
         case ILOC_C2I: return "c2i";
         case ILOC_C2C: return "c2c";
@@ -274,7 +313,7 @@ void print_iloc(iloc_t* iloc){
     switch (iloc->type){
         case ILOC_STORE:
         case ILOC_STOREAI:
-        case ILOC_STOREA0:
+        case ILOC_STOREAO:
             if(iloc->op1) fprintf(cfp, "%s => ", iloc->op1);
             if(iloc->op2) fprintf(cfp, "%s, ", iloc->op2);
             if(iloc->op3) fprintf(cfp, "%s ", iloc->op3);
