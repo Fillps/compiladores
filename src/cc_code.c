@@ -142,26 +142,38 @@ iloc_t* code_generator(comp_tree_t *tree){
 }
 
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){
-    iloc_t* address_iloc = create_iloc(ILOC_ADDI,
-                                       cc[1]->op3,
-                                       get_char_address(tree->first),
-                                       create_reg());
-    return append_iloc(
-            append_iloc(cc[1],
-                        address_iloc),
-            create_iloc(ILOC_LOADAI,
-                        get_especial_reg(tree),
-                        get_char_address(tree),
-                        create_reg()));
+
+    iloc_t *multI , *addI, *loadAO;
+
+    multI = create_iloc(
+            ILOC_MULTI,
+            cc[1]->op3,
+            INT_SIZE_c,
+            create_reg());
+
+    addI = create_iloc(
+            ILOC_ADDI,
+            multI->op3,
+            get_char_address(tree->first),
+            create_reg());
+
+    loadAO = create_iloc(
+            ILOC_LOADAO,
+            get_especial_reg(tree),
+            addI->op3,
+            create_reg());
+
+    return append_iloc(append_iloc(append_iloc(
+            cc[1], multI), addI), loadAO);
 }
 
 iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
     int op;
-    iloc_t* address_iloc;
+    iloc_t *address_iloc, *store;
     char* address;
     if (tree->first->value->type == AST_VETOR_INDEXADO){
-        cc[0] = cc[0]->prev; // o ultimo iloc de um vetor indexado é o LOADAI, sendo o penultimo o calculo do ender
-        cc[0]->next = NULL;  // remove o LOADAI deixando o calculo do ender como o ultimo iloc
+        cc[0] = cc[0]->prev; // o ultimo iloc de um vetor indexado é o LOADAO, sendo o penultimo o calculo do ender
+        cc[0]->next = NULL;  // remove o LOADAO deixando o calculo do ender como o ultimo iloc
         address_iloc = cc[0];
         address = address_iloc->op3;
         op = ILOC_STOREAO;
@@ -172,15 +184,15 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
         op = ILOC_STOREAI;
     }
 
-    return append_iloc(
-            address_iloc,
-            append_iloc(
-                    append_iloc(cc[1],
-                                create_iloc(op,
-                                            cc[1] ? cc[1]->op3 : NULL,
-                                            get_especial_reg(tree->first),
-                                            address)),
-                    cc[2]));
+    store = create_iloc(
+            op,
+            cc[1] ? cc[1]->op3 : NULL,
+            get_especial_reg(tree->first),
+            address);
+
+    return append_iloc(append_iloc(append_iloc(
+            address_iloc, cc[1]), store), cc[2]);
+
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){

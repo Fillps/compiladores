@@ -22,6 +22,9 @@
 #define PARAM_SIZE 100
 #define FIELD_SIZE 100
 
+#define INT_SIZE 4
+#define INT_SIZE_c "4"
+
 typedef struct symbol{
     int line;
     int token;

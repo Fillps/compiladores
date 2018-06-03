@@ -237,9 +237,9 @@ void declare(symbol_t* symbol, int type){
     if (type == decl_variable(POA_LIT_STRING))
         value->address[current_scope] = -1;
     else if (current_scope == GLOBAL_SCOPE)
-        value->address[current_scope] = get_global_address(1);
+        value->address[current_scope] = get_global_address(INT_SIZE);
     else
-        value->address[current_scope] = get_local_address(1);
+        value->address[current_scope] = get_local_address(INT_SIZE);
 
     value->type[current_scope] = type;
 }
@@ -253,9 +253,9 @@ void declare_vector(symbol_t* symbol, int type, int* size){
     if (type == decl_vector(POA_LIT_STRING))
         value->address[current_scope] = -1; //TODO pensar qual é a melhor forma de resolver a string(nao sabemos qual é o tamanho dela na declaracao)
     else if (current_scope == GLOBAL_SCOPE)
-        value->address[current_scope] = get_global_address(*size);
+        value->address[current_scope] = get_global_address(*size*INT_SIZE);
     else
-        value->address[current_scope] = get_local_address(*size);
+        value->address[current_scope] = get_local_address(*size*INT_SIZE);
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = size;
