@@ -91,7 +91,7 @@ iloc_t* code_generator(comp_tree_t *tree){
         return 0;
 
     iloc_t** cc = get_children_iloc_list(tree);
-    iloc_t* ret;
+    iloc_t *ret, *aux1, *aux2;
 
     switch(tree->value->type){
         case AST_LITERAL:
@@ -111,6 +111,14 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_VETOR_INDEXADO:
             ret = vetor_indexando_iloc(tree, cc);
             break;
+        case AST_ARIM_INVERSAO:
+            ret = append_iloc(
+                    cc[0], create_iloc(
+                            ILOC_RSUBI,
+                            cc[0]->op3,
+                            "0",
+                            create_reg()));
+            break;
         case AST_ARIM_SOMA:
         case AST_ARIM_MULTIPLICACAO:
         case AST_ARIM_SUBTRACAO:
@@ -123,12 +131,24 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LOGICO_COMP_LE:
         case AST_LOGICO_COMP_GE:
         case AST_LOGICO_COMP_IGUAL:
-            ret = append_iloc(
-                    append_iloc(cc[0], cc[1]),
-                    create_iloc(ast_to_iloc(tree->value->type),
-                                cc[0] ? cc[0]->op3 : NULL,
-                                cc[1] ? cc[1]->op3 : NULL,
-                                create_reg()));
+            ret = append_iloc(append_iloc(
+                    cc[0], cc[1]), create_iloc(ast_to_iloc(tree->value->type),
+                                                cc[0] ? cc[0]->op3 : NULL,
+                                                cc[1] ? cc[1]->op3 : NULL,
+                                                create_reg()));
+            break;
+        case AST_SHIFT_LEFT:
+        case AST_SHIFT_RIGHT:
+            aux1 = create_iloc(ast_to_iloc(tree->value->type),
+                               cc[0] ? cc[0]->op3 : NULL,
+                               tree->first->next->value->symbol->lexeme,
+                               create_reg());
+            aux2 = create_iloc(ILOC_STOREAI,
+                               aux1->op3,
+                               get_especial_reg(tree->first),
+                               get_char_address(tree->first));
+            ret = append_iloc(append_iloc(append_iloc(
+                    cc[0], aux1), aux2), cc[2]);
             break;
         case AST_ATRIBUICAO:
             ret = atribuicao_iloc(tree, cc);
@@ -192,7 +212,6 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 
     return append_iloc(append_iloc(append_iloc(
             address_iloc, cc[1]), store), cc[2]);
-
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){
@@ -221,6 +240,8 @@ int ast_to_iloc (int type)
         case AST_ARIM_MULTIPLICACAO: return ILOC_MULT;
         case AST_ARIM_SUBTRACAO: return ILOC_SUB;
         case AST_ARIM_DIVISAO: return ILOC_DIV;
+        case AST_SHIFT_LEFT: return ILOC_LSHIFTI;
+        case AST_SHIFT_RIGHT: return ILOC_RSHIFTI;
         case AST_LOGICO_OU: return ILOC_OR;
         case AST_LOGICO_E: return ILOC_AND;
         case AST_LOGICO_COMP_L: return ILOC_CMP_LT;
@@ -335,7 +356,6 @@ void print_iloc(iloc_t* iloc){
             if(iloc->op2) fprintf(cfp, ", %s", iloc->op2);
             if(iloc->op3) fprintf(cfp, " => %s ", iloc->op3);
     }
-
 
     fprintf(cfp, "\n");
 }

@@ -347,8 +347,8 @@ chamada_parametros:
 
 /* Comandos de Shift */
 shift:
-    identificador TK_OC_SL literal_int    { $$ = createASTBinaryNode(AST_SHIFT_LEFT, NULL, $1, $3); }
-    | identificador TK_OC_SR literal_int  { $$ = createASTBinaryNode(AST_SHIFT_RIGHT, NULL, $1, $3); };
+    identificador TK_OC_SL literal_int    { $$ = createASTBinaryNode(AST_SHIFT_LEFT, NULL, $1, $3); check_usage_variable($1); }
+    | identificador TK_OC_SR literal_int  { $$ = createASTBinaryNode(AST_SHIFT_RIGHT, NULL, $1, $3); check_usage_variable($1); };
 
 /* Comandos de retorno, break, case e continue */
 ret_break_cont:
