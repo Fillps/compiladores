@@ -78,6 +78,7 @@ Grupo Epsilon:
 
 typedef struct iloc{
     int type;
+    char* label;
     char* op1;
     char* op2;
     char* op3;

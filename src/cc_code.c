@@ -31,7 +31,7 @@ static inline char *__iloc_instructions (int type);
 char* get_char_address(comp_tree_t *tree);
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc);
 iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc);
-
+iloc_t* get_last_iloc(iloc_t* iloc);
 
 void code_init(const char *filename)
 {
@@ -76,6 +76,7 @@ iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
     iloc_t* iloc = (iloc_t*)calloc(1,sizeof(iloc_t));
     iloc->type = type;
 
+    iloc->label = NULL;
     iloc->op1 = op1;
     iloc->op2 = op2;
     iloc->op3 = op3;
@@ -92,7 +93,7 @@ iloc_t* code_generator(comp_tree_t *tree){
         return 0;
 
     iloc_t** cc = get_children_iloc_list(tree);
-    iloc_t *ret, *aux1, *aux2;
+    iloc_t *ret = NULL, *aux1 = NULL, *aux2 = NULL, *aux3 = NULL;
 
     switch(tree->value->type){
         case AST_LITERAL:
@@ -121,11 +122,7 @@ iloc_t* code_generator(comp_tree_t *tree){
                         create_reg());
             else
                 ret = append_iloc(
-                        cc[0], create_iloc(
-                                ILOC_RSUBI,
-                                cc[0]->op3,
-                                "0",
-                                create_reg()));
+                        cc[0], create_iloc(ILOC_RSUBI, cc[0]->op3, "0", create_reg()));
             break;
         case AST_ARIM_SOMA:
         case AST_ARIM_MULTIPLICACAO:
@@ -160,6 +157,43 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_ATRIBUICAO:
             ret = atribuicao_iloc(tree, cc);
+            break;
+        case AST_IF_ELSE:
+            aux1 = create_iloc(ILOC_CBR, cc[0]->op3, create_label(), create_label());
+            get_last_iloc(cc[1])->label = aux1->op2;
+            if (!cc[2]){ // nao existe else nem prox comando
+                aux2 = create_iloc(ILOC_NOP, NULL, NULL, NULL); //cria um nop para colocar o label
+                aux2->label = aux1->op3;
+                aux3 = NULL;    // prox comando = NULL
+            } else {
+                aux2 = cc[2];
+                get_last_iloc(aux2)->label = aux1->op3;
+                aux3 = cc[3];
+            }
+            ret = append_iloc(append_iloc(append_iloc(append_iloc(
+                    cc[0], aux1), cc[1]), aux2), aux3);
+            break;
+        case AST_WHILE_DO:
+            // troca o primeiro e segundo nodo para fica igual ao DO_WHILE: cc[0] = codigo cc[1] = exp
+            aux3 = cc[0];
+            cc[0] = cc[1];
+            cc[1] = aux3;
+            // adiciona um jump ate a exp
+            aux3 = create_iloc(ILOC_JUMPI, NULL, NULL, create_label());
+            get_last_iloc(cc[1])->label = aux3->op3;
+        case AST_DO_WHILE:
+            aux1 = create_iloc(ILOC_CBR, cc[1]->op3, create_label(), create_label());
+            get_last_iloc(cc[0])->label = aux1->op2; // label do codigo do while
+
+            if (!cc[2]) { // nao existe prox comando
+                aux2 = create_iloc(ILOC_NOP, NULL, NULL, NULL); //cria um nop para colocar o label
+                aux2->label = aux1->op3;
+            } else {
+                aux2 = cc[2];
+                get_last_iloc(aux2)->label = aux1->op3; // label da prox instr
+            }
+            ret = append_iloc(append_iloc(append_iloc(append_iloc(
+                    aux3, cc[0]), cc[1]), aux1), aux2);
             break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -223,7 +257,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){
-    iloc_t** cc = calloc(tree->childnodes, sizeof(iloc_t*));
+    iloc_t** cc = calloc(tree->childnodes + 1, sizeof(iloc_t*)); // +1 pq pode ou nao existir prox comando
 
     comp_tree_t* aux_tree = tree->first;
     for (int i = 0; i < tree->childnodes; i++){
@@ -349,12 +383,15 @@ void print_iloc(iloc_t* iloc){
     if(!iloc)
         return;
 
+    if(iloc->label) fprintf(cfp, "%s: ", iloc->label);
+
     fprintf(cfp, "%s ", __iloc_instructions(iloc->type));
 
     switch (iloc->type){
         case ILOC_STORE:
         case ILOC_STOREAI:
         case ILOC_STOREAO:
+        case ILOC_CBR:
             if(iloc->op1) fprintf(cfp, "%s => ", iloc->op1);
             if(iloc->op2) fprintf(cfp, "%s, ", iloc->op2);
             if(iloc->op3) fprintf(cfp, "%s ", iloc->op3);
@@ -397,4 +434,11 @@ char* get_char_address(comp_tree_t *tree){
     sprintf(address, "%i", tree->value->address);
     add_to_tmp_list(address);
     return address;
+}
+
+iloc_t* get_last_iloc(iloc_t* iloc){
+    iloc_t* last = iloc;
+    while (last->prev)
+        last = last->prev;
+    return last;
 }
