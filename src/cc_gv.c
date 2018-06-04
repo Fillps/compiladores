@@ -220,6 +220,7 @@ void gv_declare (const int tipo, const void *pointer, char *name)
   case AST_ENCADEAMENTO_PIPE:
   case AST_ENCADEAMENTO_PIPEG:
   case AST_ARIM_POT:
+  case AST_IF:
     if (name){
       fprintf (stderr, "%s: name should be NULL\n", __FUNCTION__);
       abort();
