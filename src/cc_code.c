@@ -197,6 +197,22 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = append_iloc(append_iloc(append_iloc(append_iloc(
                     aux3, cc[0]), cc[1]), aux1), aux2);
             break;
+        case AST_FOR:
+            // adiciona um JUMP para a exp
+            aux1 = create_iloc(ILOC_JUMPI, NULL, NULL, create_label());
+            get_last_iloc(cc[1])->label = aux1->op3;
+
+            if (!cc[4]) // nao existe prox comando
+                cc[4] = create_iloc(ILOC_NOP, NULL, NULL, NULL);
+
+            aux2 = create_iloc(ILOC_CBR, cc[1]->op3, create_label(), create_label());
+            get_last_iloc(cc[3])->label = aux2->op2; // se true, vai para o inicio do bloco
+            get_last_iloc(cc[4])->label = aux2->op3; // se false, vai para prox comando
+
+            // lista_comando1 -> JUMP exp -> bloco -> lista_comando2 -> exp -> CBR bloco prox_comando -> prox comando
+            ret = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
+                    cc[0], aux1), cc[3]), cc[2]), cc[1]), aux2), cc[4]);
+            break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
     }
