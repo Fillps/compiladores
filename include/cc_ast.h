@@ -49,4 +49,5 @@
 #define AST_ARIM_POT            38
 #define AST_ENCADEAMENTO_PIPE	39
 #define AST_ENCADEAMENTO_PIPEG	40
+#define AST_IF                  41
 #endif

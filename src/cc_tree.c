@@ -331,6 +331,7 @@ char *_description_from_type (int tipo)
         case AST_ARIM_POT: return "^";
         case AST_ENCADEAMENTO_PIPE: return "%|%";
         case AST_ENCADEAMENTO_PIPEG: return "%>%";
+        case AST_IF: return "if";
 
         default:
             fprintf (stderr, "%s: tipo provided is invalid here\n", __FUNCTION__);

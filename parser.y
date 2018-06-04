@@ -374,7 +374,7 @@ controle_fluxo:
 if:
     TK_PR_IF '(' exp ')' TK_PR_THEN corpo                       {
                                                                     if ($6 != NULL)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, $3, $6);
                                                                     else {
                                                                         tree_free($3);
                                                                         $$ = NULL;
@@ -385,9 +385,9 @@ if:
                                                                     if ($6 && $8)
                                                                         $$ = createASTTernaryNode(AST_IF_ELSE, NULL, $3, $6, $8);
                                                                     else if ($6)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, $3, $6);
                                                                     else if ($8)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
                                                                     else
                                                                         $$ = NULL;
                                                                     check_condition($3, TK_PR_IF);

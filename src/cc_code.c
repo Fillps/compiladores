@@ -159,19 +159,20 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = atribuicao_iloc(tree, cc);
             break;
         case AST_IF_ELSE:
+            cc[1] = append_iloc(
+                    cc[1], create_iloc(ILOC_JUMPI, NULL, NULL, create_label()));
+            if (!cc[3]) // nao existe prox comando
+                cc[3] = create_iloc(ILOC_NOP, NULL, NULL, NULL);
+            get_last_iloc(cc[3])->label = cc[1]->op3;
+        case AST_IF:
             aux1 = create_iloc(ILOC_CBR, cc[0]->op3, create_label(), create_label());
             get_last_iloc(cc[1])->label = aux1->op2;
-            if (!cc[2]){ // nao existe else nem prox comando
-                aux2 = create_iloc(ILOC_NOP, NULL, NULL, NULL); //cria um nop para colocar o label
-                aux2->label = aux1->op3;
-                aux3 = NULL;    // prox comando = NULL
-            } else {
-                aux2 = cc[2];
-                get_last_iloc(aux2)->label = aux1->op3;
-                aux3 = cc[3];
-            }
+            if (!cc[2]) // nao existe prox comando
+                cc[2] = create_iloc(ILOC_NOP, NULL, NULL, NULL);
+            get_last_iloc(cc[2])->label = aux1->op3;
+
             ret = append_iloc(append_iloc(append_iloc(append_iloc(
-                    cc[0], aux1), cc[1]), aux2), aux3);
+                    cc[0], aux1), cc[1]), cc[2]), cc[3]);
             break;
         case AST_WHILE_DO:
             // troca o primeiro e segundo nodo para fica igual ao DO_WHILE: cc[0] = codigo cc[1] = exp
