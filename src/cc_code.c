@@ -21,10 +21,6 @@ int iloc_list_length;
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
 int ast_to_iloc (int type);
-iloc_t* create_iloc_if(iloc_t* code0, iloc_t* code1);
-iloc_t* create_iloc_while(iloc_t* code0, iloc_t* code1);
-iloc_t* makeFun(symbol_t* funSymbol, iloc_t* code3);
-void updateFuncArgs(iloc_t* func, symbol_t* symbol);
 iloc_t* append_iloc_list(iloc_t* iloc_list[], int length);
 void free_iloc_list();
 static inline char *__iloc_instructions (int type);
@@ -32,6 +28,7 @@ char* get_char_address(comp_tree_t *tree);
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc);
 iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc);
 iloc_t* get_last_iloc(iloc_t* iloc);
+char* get_literal_value(comp_tree_t *literal);
 
 void code_init(const char *filename)
 {
@@ -99,7 +96,7 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LITERAL:
             ret = create_iloc(
                     ILOC_LOADI,
-                    tree->value->symbol->lexeme,
+                    get_literal_value(tree),
                     NULL,
                     create_reg());
             break;
@@ -117,7 +114,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             if (tree->first->value->type == AST_LITERAL)
                 ret = create_iloc(
                         ILOC_LOADI,
-                        insert_minus_in_str(tree->first->value->symbol->lexeme),
+                        insert_minus_in_str(get_literal_value(tree->first)),
                         NULL,
                         create_reg());
             else
@@ -146,7 +143,7 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_SHIFT_RIGHT:
             aux1 = create_iloc(ast_to_iloc(tree->value->type),
                                cc[0] ? cc[0]->op3 : NULL,
-                               tree->first->next->value->symbol->lexeme,
+                               get_literal_value(tree->first->next),
                                create_reg());
             aux2 = create_iloc(ILOC_STOREAI,
                                aux1->op3,
@@ -450,6 +447,13 @@ void free_iloc_list(){
 char* get_char_address(comp_tree_t *tree){
     char* address = malloc(20*sizeof(char));
     sprintf(address, "%i", tree->value->address);
+    add_to_tmp_list(address);
+    return address;
+}
+
+char* get_literal_value(comp_tree_t *literal){
+    char* address = malloc(20*sizeof(char));
+    sprintf(address, "%i", *(int*)literal->value->symbol->value);
     add_to_tmp_list(address);
     return address;
 }
