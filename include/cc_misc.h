@@ -69,5 +69,6 @@ int get_global_address(int size);
 int get_local_address(int size);
 char* insert_minus_in_str(char* str);
 void add_to_tmp_list(void *item);
+int get_variable_type(comp_tree_t* tree);
 
 #endif
