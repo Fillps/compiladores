@@ -250,7 +250,7 @@ int get_variable_type(comp_tree_t* tree){
     if (tree->value->type == AST_ATRIBUTO){
         class_info_t* class_info = (class_info_t*)id_value->decl_info;
         for (int i = 0; i < class_info->field_length; i++)
-            if (class_info->field_id[i] == tree->first->next)
+            if (class_info->field_id[i] == tree->first->next->value->symbol)
                 return class_info->field_type[i];
     } else {
         return id_value->type[tree->value->var_scope];

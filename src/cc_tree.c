@@ -143,8 +143,12 @@ comp_tree_t* createASTNode(int type, symbol_t *token){
     nodeAST* nodeAST = calloc(1, sizeof(struct nodeAST));
 
     nodeAST->type = type;
-		nodeAST->value_type = 0;
+    nodeAST->value_type = 0;
     nodeAST->symbol = token;
+    nodeAST->rem_false = NULL;
+    nodeAST->rem_true = NULL;
+    nodeAST->rem_false_size = 0;
+    nodeAST->rem_true_size = 0;
 
     return tree_make_node(nodeAST);
 }
