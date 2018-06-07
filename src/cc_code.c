@@ -31,8 +31,8 @@ iloc_t* get_last_iloc(iloc_t* iloc);
 char* get_literal_value(comp_tree_t *literal);
 void add_rem_false(comp_tree_t *tree, char **remendo);
 void add_rem_true(comp_tree_t *tree, char **remendo);
-void remendar_verdadeiro(comp_tree_t* tree, char *label);
-void remendar_falso(comp_tree_t* tree, char *label);
+void patchup_true(comp_tree_t* tree, char *label);
+void patchup_false(comp_tree_t* tree, char *label);
 void concat_true(comp_tree_t* tree);
 void concat_false(comp_tree_t* tree);
 void short_circuit_literal(comp_tree_t* tree, iloc_t** iloc);
@@ -57,6 +57,7 @@ void code_init(const char * filename){
 }
 
 void code_close(){
+    //Verifica se o arquivo de código foi aberto antes
     if (cfp){
         fclose(cfp);
     }
@@ -92,7 +93,7 @@ iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
 }
 
 iloc_t* code_generator(comp_tree_t *tree){
-    if(!tree) 
+    if(!tree)
         return 0;
 
     iloc_t** cc = get_children_iloc_list(tree);
@@ -131,11 +132,11 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_ARIM_MULTIPLICACAO:
         case AST_ARIM_SUBTRACAO:
         case AST_ARIM_DIVISAO:
-            ret = append_iloc(append_iloc(
-                    cc[0], cc[1]), create_iloc(ast_to_iloc(tree->value->type),
-                                               cc[0] ? cc[0]->op3 : NULL,
-                                               cc[1] ? cc[1]->op3 : NULL,
-                                               create_reg()));
+            ret = append_iloc(append_iloc(cc[0], cc[1]),
+                              create_iloc(ast_to_iloc(tree->value->type),
+                                          cc[0] ? cc[0]->op3 : NULL,    //Operando 1
+                                          cc[1] ? cc[1]->op3 : NULL,    //Operando 2
+                                          create_reg()));               //Operando 3 - onde guarda o resultado
             break;
         case AST_LOGICO_COMP_L:
         case AST_LOGICO_COMP_G:
@@ -149,11 +150,12 @@ iloc_t* code_generator(comp_tree_t *tree){
                                            create_reg());
 
             aux2 = create_iloc(ILOC_CBR, aux1->op3, NULL, NULL);
+            //Cria os remendos
             add_rem_true(tree, &aux2->op2);
             add_rem_false(tree, &aux2->op3);
 
-            ret = append_iloc(append_iloc(append_iloc(
-                    cc[0], cc[1]), aux1), aux2), cc[2];
+            ret = append_iloc(append_iloc(append_iloc(cc[0], cc[1]),
+                                          aux1), aux2), cc[2];
             break;
         case AST_LOGICO_OU:
             short_circuit_literal(tree->first, &cc[0]);
@@ -162,7 +164,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             aux1 = get_last_iloc(cc[1]);
             aux1->label = create_label();
 
-            remendar_falso(tree->first, aux1->label);
+            patchup_false(tree->first, aux1->label);
 
             concat_true(tree);
             tree->value->rem_false = tree->last->value->rem_false;
@@ -177,7 +179,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             aux1 = get_last_iloc(cc[1]);
             aux1->label = create_label();
 
-            remendar_verdadeiro(tree->first, aux1->label);
+            patchup_true(tree->first, aux1->label);
 
             concat_false(tree);
             tree->value->rem_true = tree->last->value->rem_true;
@@ -212,12 +214,12 @@ iloc_t* code_generator(comp_tree_t *tree){
 
             aux1 = get_last_iloc(cc[1]);
             aux1->label = create_label();
-            remendar_verdadeiro(tree->first, aux1->label);
-            if (!cc[2]) // nao existe prox comando
+            patchup_true(tree->first, aux1->label);
+            if (!cc[2]) // Não existe próximo comando
                 cc[2] = create_iloc(ILOC_NOP, NULL, NULL, NULL);
             aux2 = get_last_iloc(cc[2]);
             aux2->label = create_label();
-            remendar_falso(tree->first, aux2->label);
+            patchup_false(tree->first, aux2->label);
 
             ret = append_iloc(append_iloc(
                     cc[0], cc[1]), cc[2]);
@@ -233,13 +235,13 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_DO_WHILE:
             aux1 = get_last_iloc(cc[0]);
             aux1->label = create_label();
-            remendar_verdadeiro(tree->first->next, aux1->label);
+            patchup_true(tree->first->next, aux1->label);
 
             if (!cc[2]) // nao existe prox comando
                 cc[2] = create_iloc(ILOC_NOP, NULL, NULL, NULL); //cria um nop para colocar o label
             aux2 = get_last_iloc(cc[2]);
             aux2->label = create_label();
-            remendar_falso(tree->first->next, aux2->label);
+            patchup_false(tree->first->next, aux2->label);
 
             ret = append_iloc(append_iloc(append_iloc(
                     aux3, cc[0]), cc[1]), cc[2]);
@@ -254,11 +256,11 @@ iloc_t* code_generator(comp_tree_t *tree){
 
             aux2 = get_last_iloc(cc[3]);
             aux2->label = create_label(); // se true, vai para o inicio do bloco
-            remendar_verdadeiro(tree->first->next, aux2->label);
+            patchup_true(tree->first->next, aux2->label);
 
             aux3 = get_last_iloc(cc[4]);
             aux3->label = create_label(); // se false, vai para prox comando
-            remendar_falso(tree->first->next, aux3->label);
+            patchup_false(tree->first->next, aux3->label);
 
             // lista_comando1 -> JUMP exp -> bloco -> lista_comando2 -> exp bloco prox comando -> prox comando
             ret = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
@@ -326,7 +328,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
     if (var_type == decl_variable(POA_LIT_BOOL) || var_type == decl_vector(POA_LIT_BOOL)){
         load_true = create_iloc(ILOC_LOADI, "1", NULL, create_reg());
         load_true->label = create_label();
-        remendar_verdadeiro(tree->first->next, load_true->label);
+        patchup_true(tree->first->next, load_true->label);
 
         store->label = create_label();
 
@@ -334,7 +336,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 
         load_false = create_iloc(ILOC_LOADI, "0", NULL, load_true->op3);
         load_false->label = create_label();
-        remendar_falso(tree->first->next, load_false->label);
+        patchup_false(tree->first->next, load_false->label);
 
         cc[1] = append_iloc(append_iloc(append_iloc(
                 cc[1], load_true), jump_store), load_false);
@@ -347,7 +349,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){
-    iloc_t** cc = calloc(tree->childnodes + 1, sizeof(iloc_t*)); // +1 pq pode ou nao existir prox comando
+    iloc_t** cc = calloc(tree->childnodes + 1, sizeof(iloc_t*)); // +1 porque há possibilidade de existir próximo comando
 
     comp_tree_t* aux_tree = tree->first;
     for (int i = 0; i < tree->childnodes; i++){
@@ -580,14 +582,14 @@ void add_rem_true(comp_tree_t *tree, char **remendo){
     tree->value->rem_true[tree->value->rem_true_size++] = remendo;
 }
 
-void remendar_falso(comp_tree_t* tree, char* label){
+void patchup_false(comp_tree_t* tree, char* label){
     if (!tree->value->rem_false)
         return;
     for(int i = 0; i < tree->value->rem_false_size; i++)
         *tree->value->rem_false[i] = label;
 }
 
-void remendar_verdadeiro(comp_tree_t* tree, char* label){
+void patchup_true(comp_tree_t* tree, char* label){
     if (!tree->value->rem_true)
         return;
     for(int i = 0; i < tree->value->rem_true_size; i++)
@@ -596,6 +598,7 @@ void remendar_verdadeiro(comp_tree_t* tree, char* label){
 
 void short_circuit_literal(comp_tree_t *tree, iloc_t **iloc){
     if (tree->value->type == AST_LITERAL){
+        //Cria um iloc de jumpi um remendo
         *iloc = create_iloc(ILOC_JUMPI, NULL, NULL, NULL);
         if (*(int*)tree->value->symbol->value == TRUE)
             add_rem_true(tree, &(*iloc)->op3);
