@@ -63,7 +63,8 @@ comp_tree_t* ast;
 %token <valor_lexico>TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
+%left TK_OC_AND TK_OC_OR
+%left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
