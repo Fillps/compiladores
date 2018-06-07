@@ -300,7 +300,7 @@ iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){
 
 iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
     int op;
-    iloc_t *address_iloc, *store;
+    iloc_t *address_iloc, *store, *load_true, *load_false, *jump_store;
     char* address;
     if (tree->first->value->type == AST_VETOR_INDEXADO){
         cc[0] = cc[0]->prev; // o ultimo iloc de um vetor indexado é o LOADAO, sendo o penultimo o calculo do ender
@@ -320,6 +320,27 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
             cc[1] ? cc[1]->op3 : NULL,
             get_especial_reg(tree->first),
             address);
+
+    int var_type = get_variable_type(tree->first);
+
+    if (var_type == decl_variable(POA_LIT_BOOL) || var_type == decl_vector(POA_LIT_BOOL)){
+        load_true = create_iloc(ILOC_LOADI, "1", NULL, create_reg());
+        load_true->label = create_label();
+        remendar_verdadeiro(tree->first->next, load_true->label);
+
+        store->label = create_label();
+
+        jump_store = create_iloc(ILOC_JUMPI, NULL, NULL, store->label);
+
+        load_false = create_iloc(ILOC_LOADI, "0", NULL, load_true->op3);
+        load_false->label = create_label();
+        remendar_falso(tree->first->next, load_false->label);
+
+        cc[1] = append_iloc(append_iloc(append_iloc(
+                cc[1], load_true), jump_store), load_false);
+
+        store->op1 = load_true->op3;
+    }
 
     return append_iloc(append_iloc(append_iloc(
             address_iloc, cc[1]), store), cc[2]);
