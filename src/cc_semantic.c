@@ -504,7 +504,8 @@ void check_var_assignment(comp_tree_t* var, int var_type, int exp_type){
     if(var_type != exp_type &&
        decl_variable(var_type) != decl_vector(exp_type) &&
        decl_vector(var_type) != decl_variable(exp_type))
-        wrong_type_assignment(var->value->symbol, var_type, exp_type);
+       wrong_type_assignment(var->value->symbol, var_type, exp_type);
+
 }
 
 char* get_token_name(int token){

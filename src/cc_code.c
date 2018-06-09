@@ -13,6 +13,7 @@ Grupo Epsilon:
 #include "cc_misc.h"
 #include "cc_ast.h"
 #include "cc_tree.h"
+#include "cc_semantic.h"
 
 static FILE *cfp = NULL;
 iloc_t** iloc_list;
@@ -36,6 +37,7 @@ void patchup_false(comp_tree_t* tree, char *label);
 void concat_true(comp_tree_t* tree);
 void concat_false(comp_tree_t* tree);
 void short_circuit_literal(comp_tree_t* tree, iloc_t** iloc);
+void short_circuit_variable(comp_tree_t* tree, iloc_t** iloc);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
@@ -160,12 +162,6 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LOGICO_COMP_NEGACAO:
             short_circuit_literal(tree->first, &cc[0]);
 
-            aux1 = get_last_iloc(cc[0]);
-            aux1->label = create_label();
-
-            patchup_true(tree->first, aux1->label);
-
-            concat_false(tree);
             tree->value->rem_true = tree->first->value->rem_false;
             tree->value->rem_true_size = tree->first->value->rem_false_size;
             tree->value->rem_false = tree->first->value->rem_true;
@@ -615,22 +611,11 @@ void patchup_true(comp_tree_t* tree, char* label){
 
 void short_circuit_literal(comp_tree_t *tree, iloc_t **iloc){
     if (tree->value->type == AST_LITERAL){
-        //Cria um iloc de jumpi um remendo
+        //Cria um iloc de jumpi com um remendo
         *iloc = create_iloc(ILOC_JUMPI, NULL, NULL, NULL);
         if (*(int*)tree->value->symbol->value == TRUE)
             add_rem_true(tree, &(*iloc)->op3);
         else
             add_rem_false(tree, &(*iloc)->op3);
-    }
-}
-
-void short_circuit_negation(comp_tree_t *tree, iloc_t **iloc){
-    if (tree->value->type == AST_LITERAL){
-        //Cria um iloc de jumpi um remendo
-        *iloc = create_iloc(ILOC_JUMPI, NULL, NULL, NULL);
-        if (*(int*)tree->value->symbol->value == TRUE)
-            add_rem_false(tree, &(*iloc)->op3);
-        else
-            add_rem_true(tree, &(*iloc)->op3);
     }
 }
