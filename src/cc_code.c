@@ -157,6 +157,23 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = append_iloc(append_iloc(append_iloc(cc[0], cc[1]),
                                           aux1), aux2), cc[2];
             break;
+        case AST_LOGICO_COMP_NEGACAO:
+            short_circuit_literal(tree->first, &cc[0]);
+
+            aux1 = get_last_iloc(cc[0]);
+            aux1->label = create_label();
+
+            patchup_true(tree->first, aux1->label);
+
+            concat_false(tree);
+            tree->value->rem_true = tree->first->value->rem_false;
+            tree->value->rem_true_size = tree->first->value->rem_false_size;
+            tree->value->rem_false = tree->first->value->rem_true;
+            tree->value->rem_false_size = tree->first->value->rem_true_size;
+
+            ret = cc[0];
+
+            break;
         case AST_LOGICO_OU:
             short_circuit_literal(tree->first, &cc[0]);
             short_circuit_literal(tree->last, &cc[1]);
@@ -604,5 +621,16 @@ void short_circuit_literal(comp_tree_t *tree, iloc_t **iloc){
             add_rem_true(tree, &(*iloc)->op3);
         else
             add_rem_false(tree, &(*iloc)->op3);
+    }
+}
+
+void short_circuit_negation(comp_tree_t *tree, iloc_t **iloc){
+    if (tree->value->type == AST_LITERAL){
+        //Cria um iloc de jumpi um remendo
+        *iloc = create_iloc(ILOC_JUMPI, NULL, NULL, NULL);
+        if (*(int*)tree->value->symbol->value == TRUE)
+            add_rem_false(tree, &(*iloc)->op3);
+        else
+            add_rem_true(tree, &(*iloc)->op3);
     }
 }
