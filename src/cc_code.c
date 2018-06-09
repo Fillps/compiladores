@@ -6,7 +6,6 @@ Grupo Epsilon:
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <cc_semantic.h>
 #include <string.h>
 
 #include "cc_code.h"
@@ -37,7 +36,6 @@ void patchup_false(comp_tree_t* tree, char *label);
 void concat_true(comp_tree_t* tree);
 void concat_false(comp_tree_t* tree);
 void short_circuit_literal(comp_tree_t* tree, iloc_t** iloc);
-void short_circuit_variable(comp_tree_t* tree, iloc_t** iloc);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
