@@ -35,7 +35,8 @@ void patchup_true(comp_tree_t* tree, char *label);
 void patchup_false(comp_tree_t* tree, char *label);
 void concat_true(comp_tree_t* tree);
 void concat_false(comp_tree_t* tree);
-void short_circuit_literal(comp_tree_t* tree, iloc_t** iloc);
+void short_circuit_literal(comp_tree_t* tree, iloc_t **iloc);
+void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
@@ -159,6 +160,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_LOGICO_COMP_NEGACAO:
             short_circuit_literal(tree->first, &cc[0]);
+            short_circuit_variable(tree->first, &cc[0]);
 
             tree->value->rem_true = tree->first->value->rem_false;
             tree->value->rem_true_size = tree->first->value->rem_false_size;
@@ -171,6 +173,8 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LOGICO_OU:
             short_circuit_literal(tree->first, &cc[0]);
             short_circuit_literal(tree->last, &cc[1]);
+            short_circuit_variable(tree->first, &cc[0]);
+            short_circuit_variable(tree->last, &cc[1]);
 
             aux1 = get_last_iloc(cc[1]);
             aux1->label = create_label();
@@ -186,6 +190,8 @@ iloc_t* code_generator(comp_tree_t *tree){
         case AST_LOGICO_E:
             short_circuit_literal(tree->first, &cc[0]);
             short_circuit_literal(tree->last, &cc[1]);
+            short_circuit_variable(tree->first, &cc[0]);
+            short_circuit_variable(tree->last, &cc[1]);
 
             aux1 = get_last_iloc(cc[1]);
             aux1->label = create_label();
@@ -335,24 +341,36 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
             address);
 
     int var_type = get_variable_type(tree->first);
+    int ast_type = tree->first->next->value->type;
+    int is_bool = var_type == decl_variable(POA_LIT_BOOL) || var_type == decl_vector(POA_LIT_BOOL);
 
-    if (var_type == decl_variable(POA_LIT_BOOL) || var_type == decl_vector(POA_LIT_BOOL)){
-        load_true = create_iloc(ILOC_LOADI, "1", NULL, create_reg());
-        load_true->label = create_label();
-        patchup_true(tree->first->next, load_true->label);
+    // aplica o curto circuito apenas se não for um literal ou negação de um literal
+    if ((ast_type != AST_LITERAL) && is_bool){
 
-        store->label = create_label();
+        if (ast_type == AST_LOGICO_COMP_NEGACAO && tree->first->next->first->value->type == AST_LITERAL){ // verifica negação de um literal
+            cc[1] = create_iloc(
+                    ILOC_LOADAI,
+                    get_especial_reg(tree->first->next->first),
+                    get_char_address(tree->first->next->first),
+                    create_reg());
+        } else {
+            load_true = create_iloc(ILOC_LOADI, "1", NULL, create_reg());
+            load_true->label = create_label();
+            patchup_true(tree->first->next, load_true->label);
 
-        jump_store = create_iloc(ILOC_JUMPI, NULL, NULL, store->label);
+            store->label = create_label();
 
-        load_false = create_iloc(ILOC_LOADI, "0", NULL, load_true->op3);
-        load_false->label = create_label();
-        patchup_false(tree->first->next, load_false->label);
+            jump_store = create_iloc(ILOC_JUMPI, NULL, NULL, store->label);
 
-        cc[1] = append_iloc(append_iloc(append_iloc(
-                cc[1], load_true), jump_store), load_false);
+            load_false = create_iloc(ILOC_LOADI, "0", NULL, load_true->op3);
+            load_false->label = create_label();
+            patchup_false(tree->first->next, load_false->label);
 
-        store->op1 = load_true->op3;
+            cc[1] = append_iloc(append_iloc(append_iloc(
+                    cc[1], load_true), jump_store), load_false);
+
+            store->op1 = load_true->op3;
+        }
     }
 
     return append_iloc(append_iloc(append_iloc(
@@ -615,5 +633,15 @@ void short_circuit_literal(comp_tree_t *tree, iloc_t **iloc){
             add_rem_true(tree, &(*iloc)->op3);
         else
             add_rem_false(tree, &(*iloc)->op3);
+    }
+}
+
+void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc){
+    if (tree->value->type == AST_IDENTIFICADOR || tree->value->type == AST_VETOR_INDEXADO){
+        //Cria um iloc de cbr com dois remendos
+        iloc_t * cbr = create_iloc(ILOC_CBR, (*iloc)->op3, NULL, NULL);
+        add_rem_true(tree, &cbr->op2);
+        add_rem_false(tree, &cbr->op3);
+        *iloc = append_iloc(*iloc, cbr);
     }
 }
