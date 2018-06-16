@@ -36,6 +36,7 @@ typedef struct id_value{
     int type[SCOPE_SIZE];
     void* decl_info[SCOPE_SIZE];
     int address[SCOPE_SIZE];
+    int size;
 }id_value_t;
 
 typedef struct tmp_value{
@@ -71,5 +72,7 @@ void add_to_tmp_list(void *item);
 
 #include "cc_tree.h"
 int get_variable_type(comp_tree_t* tree);
+
+int size_of(int type);
 
 #endif

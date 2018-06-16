@@ -413,6 +413,7 @@ int ast_to_iloc (int type)
         case AST_LOGICO_COMP_LE: return ILOC_CMP_LE;
         case AST_LOGICO_COMP_GE: return ILOC_CMP_GE;
         case AST_LOGICO_COMP_IGUAL: return ILOC_CMP_EQ;
+        //TODO case AST_LOGICO_COMP_NEGACAO: return ILOC_XORI;
 
         default:
             fprintf (stderr, "%s: type provided is invalid here\n", __FUNCTION__);

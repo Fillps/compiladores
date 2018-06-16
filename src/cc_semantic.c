@@ -6,6 +6,7 @@ Grupo Epsilon:
 #include <stdlib.h>
 #include <string.h>
 #include "cc_semantic.h"
+#include "cc_misc.h"
 #include "cc_dict.h"
 #include "parser.h"
 
@@ -266,11 +267,17 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     check_usage_class(class_type);
 
     id_value_t* value = symbol->value;
+    id_value_t* class_value = class_type->value;
+    class_info_t* class_info = value->decl_info[current_scope];
 
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
     //TODO value->address[current_scope] calculando o tamanho da classe
+    if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(class_value->size);
+    else
+        value->address[current_scope] = get_local_address(class_value->size);
 
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
@@ -297,6 +304,11 @@ void declare_class(symbol_t* symbol){
 
     value->type[GLOBAL_SCOPE] = DECL_CLASS;
     value->decl_info[GLOBAL_SCOPE] = class_info;
+    value->size = 0;
+
+    // Calcula o tamanho em bytes da classe inteira
+    for (int i = 0; i < class_info->field_length; i++)
+        value->size += size_of(class_info->field_type[i]);
 }
 
 void check_usage_variable(comp_tree_t* tree){
@@ -395,7 +407,7 @@ void check_usage_attribute(comp_tree_t* tree){
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
                 class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
 
-                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do attibuto
+                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do atributo
                     if (attribute == cl_info->field_id[j])
                         return;
                 attribute_undeclared_error(class, attribute);
