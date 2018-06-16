@@ -273,7 +273,6 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
-    //TODO value->address[current_scope] calculando o tamanho da classe
     if (current_scope == GLOBAL_SCOPE)
         value->address[current_scope] = get_global_address(class_value->size);
     else
@@ -283,7 +282,21 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     value->decl_info[current_scope] = class_type;
 }
 
-//TODO criar nova funcao q declara vetores de nao primitivos.
+void declare_vector_non_primitive(symbol_t* symbol, int type, symbol_t* class_symbol, int* size){
+    id_value_t* value = symbol->value;
+    id_value_t* class_value = class_symbol->value;
+
+    if (value->type[current_scope] != UNDECLARED)
+        declared_error(symbol);
+
+    if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(*size*class_value->size);
+    else
+        value->address[current_scope] = get_local_address(*size*class_value->size);
+
+    value->type[current_scope] = type;
+    value->decl_info[current_scope] = size;
+}
 
 void declare_function(symbol_t* symbol, int type){
     id_value_t* value = symbol->value;

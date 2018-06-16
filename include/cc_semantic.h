@@ -73,6 +73,7 @@ void declare(symbol_t* symbol, int type);
 void declare_vector(symbol_t* symbol, int type, int* size);
 void declare_function(symbol_t* symbol, int type);
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type);
+void declare_vector_non_primitive(symbol_t* symbol, int type, symbol_t* class_symbol, int* size);
 void declare_class(symbol_t* symbol);
 
 void create_params();

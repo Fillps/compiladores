@@ -259,3 +259,24 @@ int get_variable_type(comp_tree_t* tree){
     exit(-1);
 }
 
+int size_of(int type){
+    int size = -1;
+    switch(type){
+        case decl_variable(POA_LIT_INT):
+            size = sizeof(int);
+            break;
+        case decl_variable(POA_LIT_FLOAT):
+            size = sizeof(float);
+            break;
+        case decl_variable(POA_LIT_CHAR):
+            size = sizeof(char);
+            break;
+        case decl_variable(POA_LIT_STRING):
+            //TODO size of string
+            break;
+        case decl_variable(POA_LIT_BOOL):
+            size = 1;
+            break;
+    }
+    return size;
+}
