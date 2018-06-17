@@ -201,7 +201,7 @@ var_global:
                                                                         if($4 == FALSE)
                                                                             declare_non_primitive($3, decl_variable($2->token), $2);
                                                                         else
-                                                                            declare_non_primitive($3, decl_vector($2->token), $2);
+                                                                            declare_vector_non_primitive($3, decl_vector($2->token), $2, (int*)$4->value);
                                                                     };
 
 static_opc:
