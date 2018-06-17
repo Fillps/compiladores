@@ -245,20 +245,6 @@ void add_to_tmp_list(void *item){
     tmp_list[tmp_list_length++] = item;
 }
 
-int get_variable_type(comp_tree_t* tree){
-    id_value_t* id_value = (id_value_t*)tree->value->symbol->value;
-    if (tree->value->type == AST_ATRIBUTO){
-        class_info_t* class_info = (class_info_t*)id_value->decl_info;
-        for (int i = 0; i < class_info->field_length; i++)
-            if (class_info->field_id[i] == tree->first->next->value->symbol)
-                return class_info->field_type[i];
-    } else {
-        return id_value->type[tree->value->var_scope];
-    }
-    fprintf(stderr, "Erro, nao foi possivel encontrar o tipo da variavel.");
-    exit(-1);
-}
-
 int size_of(int type){
     int size = -1;
     switch(type){

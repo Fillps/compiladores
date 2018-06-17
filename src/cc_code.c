@@ -340,7 +340,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
             get_especial_reg(tree->first),
             address);
 
-    int var_type = get_variable_type(tree->first);
+    int var_type = tree->first->value->value_type;
     int ast_type = tree->first->next->value->type;
     int is_bool = var_type == decl_variable(POA_LIT_BOOL) || var_type == decl_vector(POA_LIT_BOOL);
 

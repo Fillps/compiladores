@@ -297,7 +297,7 @@ var:
                                         }
     | identificador '.' identificador   {
                                           $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3);
-                                          check_usage_attribute($1);
+                                          check_usage_attribute($$);
                                           set_unary_node_value_type($$, get_attribute_type($1->value->symbol, $3->value->symbol));
                                         };
 
