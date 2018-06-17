@@ -328,6 +328,27 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
         address = address_iloc->op3;
         op = ILOC_STOREAO;
     }
+    else if(tree->first->value->type == AST_ATRIBUTO){
+        int scope = tree->first->value->var_scope;
+
+        id_value_t* decl_value = (id_value_t*)tree->first->first->value->symbol->value;
+        symbol_t* class = (symbol_t*) decl_value->decl_info[scope];
+        id_value_t* class_value = (id_value_t*) class->value;
+        class_info_t* class_info = (class_info_t*) class_value->decl_info[0];
+        symbol_t* attribute = (symbol_t*) tree->first->last->value->symbol;
+
+        int end = decl_value->address[scope];
+        for(int i = 0; i < class_info->field_length; i++){  // busca o atributo na lista de atributos da classe
+            if(class_info->field_id[i] == attribute)
+                break;
+            end += size_of(class_info->field_type[i]);
+        }
+        tree->first->value->address = end;
+
+        address_iloc = NULL;
+        address = get_char_address(tree->first);
+        op = ILOC_STOREAI;
+    }
     else{
         address_iloc = NULL;
         address = get_char_address(tree->first);
