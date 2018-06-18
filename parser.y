@@ -275,11 +275,16 @@ id:
                                       };
 
 var_declaracao_primitiva:
-    static_opc const_opc tipo identificador TK_OC_LE var_valor   { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6); declare($4->value->symbol, decl_variable($3)); }
-    | static_opc const_opc tipo TK_IDENTIFICADOR                 { $$ = NULL; declare($4, decl_variable($3)); };
+    static_opc const_opc tipo identificador TK_OC_LE var_valor  {   $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6);
+                                                                    declare($4->value->symbol, decl_variable($3));
+                                                                    check_usage_variable($4);
+                                                                    set_unary_node_value_type($4, get_var_type($4->value->symbol));
+                                                                    check_var_assignment($$, $4->value->value_type, $6->value->value_type);
+                                                                }
+    | static_opc const_opc tipo TK_IDENTIFICADOR                {   $$ = NULL; declare($4, decl_variable($3)); };
 
 var_valor:
-    identificador   { $$ = $1; }
+    identificador   { $$ = $1; check_usage_variable($1); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
     | literal       { $$ = $1; };
 
 /* Atribuição */
@@ -304,12 +309,12 @@ var:
 
 
 exp:
-    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_LE); }
-    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_GE); }
-    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_EQ); }
-    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_NE); }
-    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_AND); }
-    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_OR);}
+    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
     | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, SEM_GREATER); }
     | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, SEM_LESSER); }
     | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_SUM); }
@@ -321,9 +326,9 @@ exp:
     | '(' exp ')'           { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '+' exp %prec UMINUS  { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
-    | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
-    | var                   { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
-    | literal               { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
+    | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | var                   { $$ = $1; }
+    | literal               { $$ = $1; }
     | chamada_funcao        { $$ = $1; }
     | pipe                  { $$ = $1; };
 
