@@ -110,15 +110,7 @@ iloc_t* code_generator(comp_tree_t *tree){
                     create_reg());
             break;
         case AST_IDENTIFICADOR:
-            ret = create_iloc(
-                    ILOC_LOADAI,
-                    get_especial_reg(tree),
-                    get_char_address(tree),
-                    create_reg());
-            break;
         case AST_ATRIBUTO:
-            set_attribute_address(tree, tree->last->value->symbol);
-
             ret = create_iloc(
                     ILOC_LOADAI,
                     get_especial_reg(tree),
@@ -339,10 +331,6 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
         op = ILOC_STOREAO;
     }
     else if(tree->first->value->type == AST_ATRIBUTO){
-        symbol_t* attribute = (symbol_t*) tree->first->last->value->symbol;
-        comp_tree_t* attribute_tree = tree->first;
-        set_attribute_address(attribute_tree, attribute);
-
         address_iloc = NULL;
         address = get_char_address(tree->first);
         op = ILOC_STOREAI;

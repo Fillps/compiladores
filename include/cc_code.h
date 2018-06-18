@@ -95,6 +95,7 @@ iloc_t* append_iloc(iloc_t* iloc1, iloc_t* iloc2);
 void print_iloc(iloc_t* iloc);
 void print_iloc_list(iloc_t* iloc);
 iloc_t* invert_iloc_list(iloc_t* last);
+void set_attribute_address(comp_tree_t* tree, symbol_t* attribute);
 
 
 
