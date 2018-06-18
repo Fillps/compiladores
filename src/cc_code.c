@@ -27,6 +27,7 @@ static inline char *__iloc_instructions (int type);
 char* get_char_address(comp_tree_t *tree);
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc);
 iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc);
+void set_attribute_address(comp_tree_t* tree, symbol_t* attribute);
 iloc_t* get_last_iloc(iloc_t* iloc);
 char* get_literal_value(comp_tree_t *literal);
 void add_rem_false(comp_tree_t *tree, char **remendo);
@@ -109,6 +110,15 @@ iloc_t* code_generator(comp_tree_t *tree){
                     create_reg());
             break;
         case AST_IDENTIFICADOR:
+            ret = create_iloc(
+                    ILOC_LOADAI,
+                    get_especial_reg(tree),
+                    get_char_address(tree),
+                    create_reg());
+            break;
+        case AST_ATRIBUTO:
+            set_attribute_address(tree, tree->last->value->symbol);
+
             ret = create_iloc(
                     ILOC_LOADAI,
                     get_especial_reg(tree),
@@ -329,21 +339,9 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
         op = ILOC_STOREAO;
     }
     else if(tree->first->value->type == AST_ATRIBUTO){
-        int scope = tree->first->value->var_scope;
-
-        id_value_t* decl_value = (id_value_t*)tree->first->first->value->symbol->value;
-        symbol_t* class = (symbol_t*) decl_value->decl_info[scope];
-        id_value_t* class_value = (id_value_t*) class->value;
-        class_info_t* class_info = (class_info_t*) class_value->decl_info[0];
         symbol_t* attribute = (symbol_t*) tree->first->last->value->symbol;
-
-        int end = decl_value->address[scope];
-        for(int i = 0; i < class_info->field_length; i++){  // busca o atributo na lista de atributos da classe
-            if(class_info->field_id[i] == attribute)
-                break;
-            end += size_of(class_info->field_type[i]);
-        }
-        tree->first->value->address = end;
+        comp_tree_t* attribute_tree = tree->first;
+        set_attribute_address(attribute_tree, attribute);
 
         address_iloc = NULL;
         address = get_char_address(tree->first);
@@ -396,6 +394,23 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 
     return append_iloc(append_iloc(append_iloc(
             address_iloc, cc[1]), store), cc[2]);
+}
+
+void set_attribute_address(comp_tree_t* tree, symbol_t* attribute){
+    int scope = tree->value->var_scope;
+
+    id_value_t* decl_value = (id_value_t*)tree->first->value->symbol->value;
+    symbol_t* class = (symbol_t*) decl_value->decl_info[scope];
+    id_value_t* class_value = (id_value_t*) class->value;
+    class_info_t* class_info = (class_info_t*) class_value->decl_info[0];
+
+    int end = decl_value->address[scope];
+    for(int i = 0; i < class_info->field_length; i++){  // busca o atributo na lista de atributos da classe
+        if(class_info->field_id[i] == attribute)
+            break;
+        end += size_of(class_info->field_type[i]);
+    }
+    tree->value->address = end;
 }
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree){
