@@ -50,4 +50,5 @@
 #define AST_ENCADEAMENTO_PIPE	  39
 #define AST_ENCADEAMENTO_PIPEG	40
 #define AST_IF                  41
+#define AST_EXP_LIST            42
 #endif

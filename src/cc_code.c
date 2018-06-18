@@ -26,8 +26,7 @@ void free_iloc_list();
 static inline char *__iloc_instructions (int type);
 char* get_char_address(comp_tree_t *tree);
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc);
-iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc);
-void set_attribute_address(comp_tree_t* tree, symbol_t* attribute);
+iloc_t* atribuicao_iloc(comp_tree_t* tree);
 iloc_t* get_last_iloc(iloc_t* iloc);
 char* get_literal_value(comp_tree_t *literal);
 void add_rem_false(comp_tree_t *tree, char **remendo);
@@ -38,6 +37,7 @@ void concat_true(comp_tree_t* tree);
 void concat_false(comp_tree_t* tree);
 void short_circuit_literal(comp_tree_t* tree, iloc_t **iloc);
 void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc);
+iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
@@ -220,7 +220,7 @@ iloc_t* code_generator(comp_tree_t *tree){
                     cc[0], aux1), aux2), cc[2]);
             break;
         case AST_ATRIBUICAO:
-            ret = atribuicao_iloc(tree, cc);
+            ret = atribuicao_iloc(tree);
             break;
         case AST_IF_ELSE:
             cc[1] = append_iloc(
@@ -285,12 +285,52 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
                     cc[0], aux1), cc[3]), cc[2]), cc[1]), cc[4]);
             break;
+        case AST_FOREACH:
+            ret = foreach_iloc(tree, cc);
+            break;
+        case AST_EXP_LIST:
+            break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
     }
 
+    tree->value->iloc = ret;
     free(cc);
     return ret;
+}
+
+/*
+ * Duplica o codigo iloc
+ */
+iloc_t * iloc_dup(iloc_t* iloc){
+    iloc_t* dup = NULL;
+    while (iloc->prev){
+        dup = append_iloc(create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3), dup);
+        dup->label = iloc->label;
+        iloc = iloc->prev;
+    }
+    dup = append_iloc(create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3), dup);
+    dup->label = iloc->label;
+    return dup;
+}
+
+iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc) {
+    comp_tree_t *aux_tree = tree->first->next;
+    comp_tree_t *atrib_aux_tree;
+    iloc_t *ret = NULL, *block = tree->first->next->next->value->iloc, *id = tree->first->value->iloc;
+    iloc_t * atr;
+    while (aux_tree->value->type == AST_EXP_LIST){
+        tree->first->value->iloc = iloc_dup(id);
+        //aux_tree->first->value->iloc = iloc_dup(val);
+        atrib_aux_tree = createASTBinaryNode(AST_ATRIBUICAO, NULL, tree->first, aux_tree->first);
+        ret = append_iloc(append_iloc(
+                ret, atribuicao_iloc(atrib_aux_tree)), iloc_dup(block));
+        aux_tree = aux_tree->last;
+    }
+    //aux_tree->value->iloc = iloc_dup(val);
+    atrib_aux_tree = createASTBinaryNode(AST_ATRIBUICAO, NULL, tree->first, aux_tree);
+    return append_iloc(append_iloc(append_iloc(
+            ret, atribuicao_iloc(atrib_aux_tree)), iloc_dup(block)), cc[3]);
 }
 
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){
@@ -319,14 +359,17 @@ iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){
             cc[1], multI), addI), loadAO);
 }
 
-iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
+iloc_t* atribuicao_iloc(comp_tree_t* tree){
     int op;
-    iloc_t *address_iloc, *store, *load_true, *load_false, *jump_store;
+    iloc_t *address_iloc, *store, *load_true, *load_false, *jump_store, *iloc_id, *iloc_val, *iloc_next;
+    iloc_id = tree->first->value->iloc;
+    iloc_val = tree->first->next->value->iloc;
+    iloc_next = tree->childnodes == 3 ? tree->last->value->iloc : NULL;
     char* address;
     if (tree->first->value->type == AST_VETOR_INDEXADO){
-        cc[0] = cc[0]->prev; // o ultimo iloc de um vetor indexado é o LOADAO, sendo o penultimo o calculo do ender
-        cc[0]->next = NULL;  // remove o LOADAO deixando o calculo do ender como o ultimo iloc
-        address_iloc = cc[0];
+        iloc_id = iloc_id->prev; // o ultimo iloc de um vetor indexado é o LOADAO, sendo o penultimo o calculo do ender
+        iloc_id->next = NULL;  // remove o LOADAO deixando o calculo do ender como o ultimo iloc
+        address_iloc = iloc_id;
         address = address_iloc->op3;
         op = ILOC_STOREAO;
     }
@@ -343,7 +386,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
 
     store = create_iloc(
             op,
-            cc[1] ? cc[1]->op3 : NULL,
+            iloc_val->op3,
             get_especial_reg(tree->first),
             address);
 
@@ -355,7 +398,7 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
     if ((ast_type != AST_LITERAL) && is_bool){
 
         if (ast_type == AST_LOGICO_COMP_NEGACAO && tree->first->next->first->value->type == AST_LITERAL){ // verifica negação de um literal
-            cc[1] = create_iloc(
+            iloc_val = create_iloc(
                     ILOC_LOADAI,
                     get_especial_reg(tree->first->next->first),
                     get_char_address(tree->first->next->first),
@@ -373,15 +416,15 @@ iloc_t* atribuicao_iloc(comp_tree_t* tree, iloc_t** cc){
             load_false->label = create_label();
             patchup_false(tree->first->next, load_false->label);
 
-            cc[1] = append_iloc(append_iloc(append_iloc(
-                    cc[1], load_true), jump_store), load_false);
+            iloc_val = append_iloc(append_iloc(append_iloc(
+                    iloc_val, load_true), jump_store), load_false);
 
             store->op1 = load_true->op3;
         }
     }
 
     return append_iloc(append_iloc(append_iloc(
-            address_iloc, cc[1]), store), cc[2]);
+            address_iloc, iloc_val), store), iloc_next);
 }
 
 void set_attribute_address(comp_tree_t* tree, symbol_t* attribute){

@@ -328,7 +328,7 @@ exp:
     | pipe                  { $$ = $1; };
 
 exp_lista:
-    exp ',' exp_lista       { $$ = $1; tree_insert_node($1, $3); }
+    exp ',' exp_lista       { $$ = createASTBinaryNode(AST_EXP_LIST, NULL, $1, $3); }
     | exp                   { $$ = $1; };
 
 /* Input e Output */
