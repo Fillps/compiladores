@@ -20,8 +20,6 @@ ADD_EXECUTABLE(main
   src/cc_code.c)
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 
-ADD_EXECUTABLE(cc_dict_main_example src/cc_dict.c src/cc_dict_main_example.c src/cc_semantic.c src/cc_code.c)
-
 ENABLE_TESTING()
 SET(i 0)
 FILE(COPY tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

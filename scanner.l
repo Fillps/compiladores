@@ -61,15 +61,15 @@ protected   return TK_PR_PROTECTED;
 
 "//".*|" "|"\t"
 
-false       {yylval.valor_lexico = insert_symbol(TK_LIT_FALSE); return TK_LIT_FALSE;}
-true        {yylval.valor_lexico = insert_symbol(TK_LIT_TRUE); return TK_LIT_TRUE;}
+false       {yylval.valor_lexico = insert_symbol(TK_LIT_FALSE, yytext, yyleng); return TK_LIT_FALSE;}
+true        {yylval.valor_lexico = insert_symbol(TK_LIT_TRUE, yytext, yyleng); return TK_LIT_TRUE;}
 
-{ALFABETIC}{ALFANUMERIC}*   {yylval.valor_lexico = insert_symbol(TK_IDENTIFICADOR); return TK_IDENTIFICADOR;}
-\'.?\'                      {yylval.valor_lexico = insert_symbol(TK_LIT_CHAR); return TK_LIT_CHAR;}
-\"([^\"\n])*\"              {yylval.valor_lexico = insert_symbol(TK_LIT_STRING); return TK_LIT_STRING;}
+{ALFABETIC}{ALFANUMERIC}*   {yylval.valor_lexico = insert_symbol(TK_IDENTIFICADOR, yytext, yyleng); return TK_IDENTIFICADOR;}
+\'.?\'                      {yylval.valor_lexico = insert_symbol(TK_LIT_CHAR, yytext, yyleng); return TK_LIT_CHAR;}
+\"([^\"\n])*\"              {yylval.valor_lexico = insert_symbol(TK_LIT_STRING, yytext, yyleng); return TK_LIT_STRING;}
 
-{INTEGER}                   {yylval.valor_lexico = insert_symbol(TK_LIT_INT); return TK_LIT_INT;}
-{FLOAT}                     {yylval.valor_lexico = insert_symbol(TK_LIT_FLOAT); return TK_LIT_FLOAT;}
+{INTEGER}                   {yylval.valor_lexico = insert_symbol(TK_LIT_INT, yytext, yyleng); return TK_LIT_INT;}
+{FLOAT}                     {yylval.valor_lexico = insert_symbol(TK_LIT_FLOAT, yytext, yyleng); return TK_LIT_FLOAT;}
 
 <INITIAL>{
 "/*"              BEGIN(IN_COMMENT);

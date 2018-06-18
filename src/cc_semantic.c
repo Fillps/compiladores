@@ -4,7 +4,9 @@ Grupo Epsilon:
   - Filipe Silva
 */
 #include <stdlib.h>
+#include <string.h>
 #include "cc_semantic.h"
+#include "cc_misc.h"
 #include "cc_dict.h"
 #include "parser.h"
 
@@ -206,12 +208,12 @@ void invalid_condition_error(comp_tree_t* exp_tree, char* comand, char* correct_
     exit(IKS_ERROR_INVALID_CONDITION);
 }
 
-void check_declared(symbol_t* symbol, int type){
+int check_declared(symbol_t* symbol){
     id_value_t* value = symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0 ; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
-            return;
+            return i;
 
     undeclared_error(symbol);
 }
@@ -233,7 +235,31 @@ void declare(symbol_t* symbol, int type){
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
+    if (type == decl_variable(POA_LIT_STRING))
+        value->address[current_scope] = -1;
+    else if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(INT_SIZE);
+    else
+        value->address[current_scope] = get_local_address(INT_SIZE);
+
     value->type[current_scope] = type;
+}
+
+void declare_vector(symbol_t* symbol, int type, int* size){
+    id_value_t* value = symbol->value;
+
+    if (value->type[current_scope] != UNDECLARED)
+        declared_error(symbol);
+
+    if (type == decl_vector(POA_LIT_STRING))
+        value->address[current_scope] = -1; //TODO pensar qual é a melhor forma de resolver a string(nao sabemos qual é o tamanho dela na declaracao)
+    else if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(*size*INT_SIZE);
+    else
+        value->address[current_scope] = get_local_address(*size*INT_SIZE);
+
+    value->type[current_scope] = type;
+    value->decl_info[current_scope] = size;
 }
 
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
@@ -241,12 +267,35 @@ void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type){
     check_usage_class(class_type);
 
     id_value_t* value = symbol->value;
+    id_value_t* class_value = class_type->value;
+    class_info_t* class_info = value->decl_info[current_scope];
 
     if (value->type[current_scope] != UNDECLARED)
         declared_error(symbol);
 
+    if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(class_value->size);
+    else
+        value->address[current_scope] = get_local_address(class_value->size);
+
     value->type[current_scope] = type;
     value->decl_info[current_scope] = class_type;
+}
+
+void declare_vector_non_primitive(symbol_t* symbol, int type, symbol_t* class_symbol, int* size){
+    id_value_t* value = symbol->value;
+    id_value_t* class_value = class_symbol->value;
+
+    if (value->type[current_scope] != UNDECLARED)
+        declared_error(symbol);
+
+    if (current_scope == GLOBAL_SCOPE)
+        value->address[current_scope] = get_global_address(*size*class_value->size);
+    else
+        value->address[current_scope] = get_local_address(*size*class_value->size);
+
+    value->type[current_scope] = type;
+    value->decl_info[current_scope] = size;
 }
 
 void declare_function(symbol_t* symbol, int type){
@@ -268,40 +317,51 @@ void declare_class(symbol_t* symbol){
 
     value->type[GLOBAL_SCOPE] = DECL_CLASS;
     value->decl_info[GLOBAL_SCOPE] = class_info;
+    value->size = 0;
+
+    // Calcula o tamanho em bytes da classe inteira
+    for (int i = 0; i < class_info->field_length; i++)
+        value->size += size_of(class_info->field_type[i]);
 }
 
-void check_usage_variable(symbol_t* symbol){
-    id_value_t* value = symbol->value;
+void check_usage_variable(comp_tree_t* tree){
+    id_value_t* value = tree->value->symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_vector(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_vector(POA_LIT_BOOL))
-                vector_error(symbol);
+                vector_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_FUNCTION)
-                function_error(symbol);
+                function_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_CLASS)
-                class_error(symbol);
-            else
+                class_error(tree->value->symbol);
+            else{
+                tree->value->var_scope = scope_stack[i];
+                tree->value->address = value->address[scope_stack[i]];
                 return;
+            }
 
-    undeclared_error(symbol);
+    undeclared_error(tree->value->symbol);
 }
 
-void check_usage_vector(symbol_t* symbol){
-    id_value_t* value = symbol->value;
+void check_usage_vector(comp_tree_t* tree){
+    id_value_t* value = tree->value->symbol->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--)
         if (value->type[scope_stack[i]] != UNDECLARED)
             if (value->type[scope_stack[i]] >= decl_variable(POA_LIT_INT) && value->type[scope_stack[i]] <= decl_variable(POA_IDENT))
-                variable_error(symbol);
+                variable_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_FUNCTION)
-                function_error(symbol);
+                function_error(tree->value->symbol);
             else if (value->type[scope_stack[i]] == DECL_CLASS)
-                class_error(symbol);
-            else
+                class_error(tree->value->symbol);
+            else{
+                tree->value->var_scope = scope_stack[i];
+                tree->value->address = value->address[scope_stack[i]];
                 return;
+            }
 
-    undeclared_error(symbol);
+    undeclared_error(tree->value->symbol);
 }
 
 void check_usage_function(comp_tree_t* tree){
@@ -345,18 +405,22 @@ void check_usage_function(comp_tree_t* tree){
     undeclared_error(symbol);
 }
 
-void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
+void check_usage_attribute(comp_tree_t* tree){
+    symbol_t* class_var = tree->first->value->symbol;
+    symbol_t* attribute = tree->last->value->symbol;
     id_value_t* id_value = (id_value_t *) class_var->value;
 
     for(int i = scope_stack_length - 1; i >= 0; i--) //procura a declaracao da variavel de classe
         if (id_value->type[scope_stack[i]] == decl_variable(POA_IDENT)){
             symbol_t* class = ((symbol_t *)id_value->decl_info[scope_stack[i]]);
             id_value_t* class_value = (id_value_t*)class->value;
+            tree->value->var_scope = scope_stack[i];
+            tree->value->address = id_value->address[scope_stack[i]];
 
             if (class_value->type[GLOBAL_SCOPE] == DECL_CLASS){
                 class_info_t* cl_info =  class_value->decl_info[GLOBAL_SCOPE];
 
-                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do attibuto
+                for (int j = 0; j < cl_info->field_length; j++) // procura a declaracao do atributo
                     if (attribute == cl_info->field_id[j])
                         return;
                 attribute_undeclared_error(class, attribute);
@@ -374,7 +438,7 @@ void check_usage_attribute(symbol_t* class_var, symbol_t* attribute){
 }
 
 void create_params(){
-    function_info = malloc(sizeof(function_info_t));
+    function_info = calloc(1, sizeof(function_info_t));
     function_info->params_length = 0;
 }
 
@@ -461,9 +525,12 @@ int get_func_type(comp_tree_t* tree){
     return func_type;
 }
 
-void check_var_assignment(symbol_t* var, int var_type, int exp_type){
-    if(var_type != exp_type)
-        wrong_type_assignment(var, var_type, exp_type);
+void check_var_assignment(comp_tree_t* var, int var_type, int exp_type){
+    if(var_type != exp_type &&
+       decl_variable(var_type) != decl_vector(exp_type) &&
+       decl_vector(var_type) != decl_variable(exp_type))
+       wrong_type_assignment(var->value->symbol, var_type, exp_type);
+
 }
 
 char* get_token_name(int token){
@@ -487,28 +554,28 @@ char* get_token_name(int token){
         case TK_OC_OR:
             name = "||";
             break;
-        case GREATER:
+        case SEM_GREATER:
             name = ">";
             break;
-        case LESSER:
+        case SEM_LESSER:
             name = "<";
             break;
-        case SUM:
+        case SEM_SUM:
             name = "+";
             break;
-        case SUB:
+        case SEM_SUB:
             name = "-";
             break;
-        case MULT:
+        case SEM_MULT:
             name = "*";
             break;
-        case DIV:
+        case SEM_DIV:
             name = "/";
             break;
-        case MOD:
+        case SEM_MOD:
             name = "%";
             break;
-        case POT:
+        case SEM_POT:
             name = "^";
             break;
         case TK_PR_IF:
@@ -542,7 +609,7 @@ void check_condition(comp_tree_t* exp, int token){
         case TK_PR_DO:
         case TK_PR_WHILE:
         case TK_PR_FOR:
-            if(exp_type != decl_variable(POA_LIT_BOOL))
+            if(exp_type != decl_variable(POA_LIT_BOOL) && exp_type != decl_vector(POA_LIT_BOOL))
                 invalid_condition_error(exp, comand, "logic", exp_type);
             break;
         case TK_PR_SWITCH:
@@ -553,7 +620,7 @@ void check_condition(comp_tree_t* exp, int token){
 }
 
 void set_unary_node_value_type(comp_tree_t* node, int value_type){
-		node->value->value_type = value_type;
+	node->value->value_type = value_type;
 }
 
 void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){

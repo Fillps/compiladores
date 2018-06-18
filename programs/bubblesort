@@ -2,27 +2,40 @@
 int vetor[100];
 
 // função bubblesort
-int bubble_sort(int n)
+int bubble_sort()
 {
-    int k;
-    int j;
-    int aux;
+  int n <= 10;
 
-    // for() para percorrer o vetor de entrada n vezes
-    for(k = 1: k < n: k = k+1)
+  vetor[0] = 10;
+  vetor[1] = 8;
+  vetor[2] = 5;
+  vetor[3] = 3;
+  vetor[4] = 2;
+  vetor[5] = 9;
+  vetor[6] = 1;
+  vetor[7] = 4;
+  vetor[8] = 6;
+  vetor[9] = 7;
+
+  int k;
+  int j;
+  int aux;
+
+  // for() para percorrer o vetor de entrada n vezes
+  for(k = 0: k < n: k = k+1)
+  {
+    //for() para percorrer o vetor
+    for(j = 0: j < n: j = j+1)
     {
-        //for() para percorrer o vetor
-        for(j = 0: j < n: j = j-1)
-        {
 
-            if(vetor[j] >= vetor[j+1]+1) then
-            {
-                aux = vetor[j];
-                vetor[j] = vetor[j+1];
-                vetor[j+1] = aux;
-            };
-        };
+      if(vetor[j] >= vetor[j+1]) then
+      {
+        aux = vetor[j];
+        vetor[j] = vetor[j+1];
+        vetor[j+1] = aux;
+      };
     };
-    return 0;
+  };
+  return 0;
 }
 

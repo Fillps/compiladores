@@ -23,7 +23,12 @@
 typedef struct nodeAST{
     int type;
     int value_type;
+    int var_scope;
+    int address;
     symbol_t *symbol;
+    char ***rem_false, ***rem_true;    //remendo false e remendo true
+    int rem_false_size, rem_true_size;
+    void* iloc;
 }nodeAST;
 
 /*

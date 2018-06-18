@@ -7,6 +7,7 @@
 #include "cc_tree.h"
 #include "cc_ast.h"
 #include "cc_semantic.h"
+#include "cc_code.h"
 
 comp_tree_t* ast;
 }
@@ -62,7 +63,8 @@ comp_tree_t* ast;
 %token <valor_lexico>TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
+%left TK_OC_AND TK_OC_OR
+%left '>' '<' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
@@ -109,7 +111,7 @@ comp_tree_t* ast;
 %type <ast>funcoes_encadeadas
 
 %type <type>tipo
-%type <type>vetor_global
+%type <valor_lexico>vetor_global
 /* Declaração dos Não-Terminais */
 
 %start programa
@@ -118,7 +120,7 @@ comp_tree_t* ast;
 /* Regras (e ações) da gramática */
 
 programa:
-    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; }
+    comandos    { if ($1 != NULL) $$ = createASTUnaryNode(AST_PROGRAMA, NULL, $1); else $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; build_gv($$); build_iloc_code($$); }
     | %empty    { $$ = createASTNode(AST_PROGRAMA, NULL); ast = $$; };
 
 comandos:
@@ -192,14 +194,14 @@ var_global:
                                                                         if($4 == FALSE)
                                                                             declare($3, decl_variable($2));
                                                                         else
-                                                                            declare($3, decl_vector($2));
+                                                                            declare_vector($3, decl_vector($2), (int*)$4->value);
                                                                     }
     | static_opc TK_IDENTIFICADOR TK_IDENTIFICADOR vetor_global ';' {
-                                                                        check_declared($2, DECL_CLASS);
+                                                                        check_declared($2);
                                                                         if($4 == FALSE)
                                                                             declare_non_primitive($3, decl_variable($2->token), $2);
                                                                         else
-                                                                            declare_non_primitive($3, decl_vector($2->token), $2);
+                                                                            declare_vector_non_primitive($3, decl_vector($2->token), $2, (int*)$4->value);
                                                                     };
 
 static_opc:
@@ -208,7 +210,7 @@ static_opc:
 
 vetor_global:
     %empty                  { $$ = FALSE; }
-    | '[' TK_LIT_INT ']'    { $$ = POA_LIT_INT; };
+    | '[' TK_LIT_INT ']'    { $$ = $2; };
 
 /* Função */
 funcao:
@@ -268,67 +270,71 @@ comando_simples:
 
 id:
     TK_IDENTIFICADOR TK_IDENTIFICADOR { $$ = NULL;  // variável de tipo não-primitivo
-                                        check_declared($1, DECL_CLASS);
+                                        check_declared($1);
                                         declare_non_primitive($2, decl_variable($1->token), $1);
                                       };
 
 var_declaracao_primitiva:
-    static_opc const_opc tipo identificador TK_OC_LE var_valor   { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6); declare($4->value->symbol, decl_variable($3)); }
-    | static_opc const_opc tipo TK_IDENTIFICADOR                 { $$ = NULL; declare($4, decl_variable($3)); };
+    static_opc const_opc tipo identificador TK_OC_LE var_valor  {   $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $4, $6);
+                                                                    declare($4->value->symbol, decl_variable($3));
+                                                                    check_usage_variable($4);
+                                                                    set_unary_node_value_type($4, get_var_type($4->value->symbol));
+                                                                    check_var_assignment($$, $4->value->value_type, $6->value->value_type);
+                                                                }
+    | static_opc const_opc tipo TK_IDENTIFICADOR                {   $$ = NULL; declare($4, decl_variable($3)); };
 
 var_valor:
-    identificador   { $$ = $1; }
+    identificador   { $$ = $1; check_usage_variable($1); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
     | literal       { $$ = $1; };
 
 /* Atribuição */
 atribuicao:
     var '=' exp { $$ = createASTBinaryNode(AST_ATRIBUICAO, NULL, $1, $3);
-                    build_symbol($1);
-                    build_symbol($3);
-                    check_var_assignment($1->value->symbol, $1->value->value_type, $3->value->value_type);
+                    check_var_assignment($$, $1->value->value_type, $3->value->value_type);
                 };
 
 var:
-    identificador                       { $$ = $1; check_usage_variable($1->value->symbol); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
+    identificador                       { $$ = $1; check_usage_variable($1); set_unary_node_value_type($$, get_var_type($1->value->symbol)); }
     | identificador '[' exp ']'         {
                                           $$ = createASTBinaryNode(AST_VETOR_INDEXADO, NULL, $1, $3);
-                                          check_usage_vector($1->value->symbol);
+                                          check_usage_vector($1);
                                           set_unary_node_value_type($$, get_vector_type($1->value->symbol));
                                         }
     | identificador '.' identificador   {
                                           $$ = createASTBinaryNode(AST_ATRIBUTO, NULL, $1, $3);
-                                          check_usage_attribute($1->value->symbol, $3->value->symbol);
+                                          check_usage_attribute($$);
                                           set_unary_node_value_type($$, get_attribute_type($1->value->symbol, $3->value->symbol));
+                                          set_attribute_address($$, $3->value->symbol);
                                         };
 
 
 exp:
-    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_LE); }
-    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, TK_OC_GE); }
-    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_EQ); }
-    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM_BOOL, TK_OC_NE); }
-    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_AND); }
-    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_binary_node_value_type($$, CMP_BOOL, TK_OC_OR);}
-    | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, GREATER); }
-    | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, LESSER); }
-    | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SUM); build_symbol($$);}
-    | exp '-' exp           { $$ = createASTBinaryNode(AST_ARIM_SUBTRACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SUB); }
-    | exp '*' exp           { $$ = createASTBinaryNode(AST_ARIM_MULTIPLICACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, MULT); }
-    | exp '/' exp           { $$ = createASTBinaryNode(AST_ARIM_DIVISAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, DIV); }
-    | exp '%' exp           { $$ = createASTBinaryNode(AST_ARIM_MOD, NULL, $1, $3); set_binary_node_value_type($$, ARITM, MOD); }
-    | exp '^' exp           { $$ = createASTBinaryNode(AST_ARIM_POT, NULL, $1, $3); set_binary_node_value_type($$, ARITM, POT); }
+    exp TK_OC_LE exp        { $$ = createASTBinaryNode(AST_LOGICO_COMP_LE, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_GE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_GE, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_EQ exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_IGUAL, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_NE exp      { $$ = createASTBinaryNode(AST_LOGICO_COMP_DIF, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_AND exp     { $$ = createASTBinaryNode(AST_LOGICO_E, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp TK_OC_OR exp      { $$ = createASTBinaryNode(AST_LOGICO_OU, NULL, $1, $3); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | exp '>' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_G, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, SEM_GREATER); }
+    | exp '<' exp           { $$ = createASTBinaryNode(AST_LOGICO_COMP_L, NULL, $1, $3); set_binary_node_value_type($$, CMP_ARITM, SEM_LESSER); }
+    | exp '+' exp           { $$ = createASTBinaryNode(AST_ARIM_SOMA, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_SUM); }
+    | exp '-' exp           { $$ = createASTBinaryNode(AST_ARIM_SUBTRACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_SUB); }
+    | exp '*' exp           { $$ = createASTBinaryNode(AST_ARIM_MULTIPLICACAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_MULT); }
+    | exp '/' exp           { $$ = createASTBinaryNode(AST_ARIM_DIVISAO, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_DIV); }
+    | exp '%' exp           { $$ = createASTBinaryNode(AST_ARIM_MOD, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_MOD); }
+    | exp '^' exp           { $$ = createASTBinaryNode(AST_ARIM_POT, NULL, $1, $3); set_binary_node_value_type($$, ARITM, SEM_POT); }
     | '(' exp ')'           { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '+' exp %prec UMINUS  { $$ = $2; set_unary_node_value_type($$, $2->value->value_type); }
     | '-' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_ARIM_INVERSAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
-    | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, $2->value->value_type); }
-    | var                   { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
-    | literal               { $$ = $1; set_unary_node_value_type($$, $1->value->value_type); }
+    | '!' exp %prec UMINUS  { $$ = createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $2); set_unary_node_value_type($$, decl_variable(POA_LIT_BOOL)); }
+    | var                   { $$ = $1; }
+    | literal               { $$ = $1; }
     | chamada_funcao        { $$ = $1; }
     | pipe                  { $$ = $1; };
 
 exp_lista:
-    exp ',' exp_lista       { $$ = $1; tree_insert_node($1, $3); build_symbol($1);}
-    | exp                   { $$ = $1; build_symbol($1); };
+    exp ',' exp_lista       { $$ = createASTBinaryNode(AST_EXP_LIST, NULL, $1, $3); }
+    | exp                   { $$ = $1; };
 
 /* Input e Output */
 output:
@@ -343,13 +349,13 @@ chamada_funcao:
     | identificador '(' ')'                  { $$ = createASTUnaryNode(AST_CHAMADA_DE_FUNCAO, NULL, $1); $$->value->symbol = $1->value->symbol; set_unary_node_value_type($$, get_func_type($$)); check_usage_function($$); };
 
 chamada_parametros:
-    exp ',' chamada_parametros  { $$ = $1; tree_make_next($1, $3); build_symbol($1);}
-    | exp                       { $$ = $1; build_symbol($1);};
+    exp ',' chamada_parametros  { $$ = $1; tree_make_next($1, $3); }
+    | exp                       { $$ = $1; };
 
 /* Comandos de Shift */
 shift:
-    identificador TK_OC_SL literal_int    { $$ = createASTBinaryNode(AST_SHIFT_LEFT, NULL, $1, $3); }
-    | identificador TK_OC_SR literal_int  { $$ = createASTBinaryNode(AST_SHIFT_RIGHT, NULL, $1, $3); };
+    identificador TK_OC_SL literal_int    { $$ = createASTBinaryNode(AST_SHIFT_LEFT, NULL, $1, $3); check_usage_variable($1); }
+    | identificador TK_OC_SR literal_int  { $$ = createASTBinaryNode(AST_SHIFT_RIGHT, NULL, $1, $3); check_usage_variable($1); };
 
 /* Comandos de retorno, break, case e continue */
 ret_break_cont:
@@ -375,24 +381,22 @@ controle_fluxo:
 if:
     TK_PR_IF '(' exp ')' TK_PR_THEN corpo                       {
                                                                     if ($6 != NULL)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, $3, $6);
                                                                     else {
                                                                         tree_free($3);
                                                                         $$ = NULL;
                                                                     }
-                                                                    build_symbol($3);
                                                                     check_condition($3, TK_PR_IF);
                                                                 }
     | TK_PR_IF '(' exp ')' TK_PR_THEN corpo TK_PR_ELSE corpo    {
                                                                     if ($6 && $8)
                                                                         $$ = createASTTernaryNode(AST_IF_ELSE, NULL, $3, $6, $8);
                                                                     else if ($6)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, $3, $6);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, $3, $6);
                                                                     else if ($8)
-                                                                        $$ = createASTBinaryNode(AST_IF_ELSE, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
+                                                                        $$ = createASTBinaryNode(AST_IF, NULL, createASTUnaryNode(AST_LOGICO_COMP_NEGACAO, NULL, $3), $8);
                                                                     else
                                                                         $$ = NULL;
-                                                                    build_symbol($3);
                                                                     check_condition($3, TK_PR_IF);
                                                                 };
 /* SWITCH */
@@ -404,13 +408,12 @@ switch:
                                             tree_free($3);
                                             $$ = NULL;
                                         }
-                                        build_symbol($3);
                                         check_condition($3, TK_PR_SWITCH);
                                       };
 
 /* WHILE e DO-WHILE */
 while_exp:
-    TK_PR_WHILE '(' exp ')'    { $$ = $3; build_symbol($3); check_condition($3, TK_PR_WHILE); };
+    TK_PR_WHILE '(' exp ')'    { $$ = $3; check_condition($3, TK_PR_WHILE); };
 
 while:
     while_exp TK_PR_DO corpo    {
@@ -438,7 +441,7 @@ do_while:
 /* FOREACH */
 foreach:
     TK_PR_FOREACH '(' identificador ':' exp_lista ')' corpo    {
-                                                                check_usage_variable($3->value->symbol);
+                                                                check_usage_variable($3);
                                                                 if ($7)
                                                                     $$ = createASTTernaryNode(AST_FOREACH, NULL, $3, $5, $7);
                                                                 else{
@@ -451,7 +454,6 @@ foreach:
 /* FOR */
 for:
     TK_PR_FOR '(' lista_comandos ':' exp ':' lista_comandos ')' corpo   {
-                                                                            build_symbol($5);
                                                                             check_condition($5, TK_PR_FOR);
                                                                             if ($7)
                                                                                 $$ = createASTQuaternaryNode(AST_FOR, NULL, $3, $5, $7, $9);

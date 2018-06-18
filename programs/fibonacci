@@ -2,8 +2,10 @@
 int seq[100];
 
 // função main com o número 'n' de elementos da sequencia de fibonacci
-int main(int n)
+int main()
 {
+    int n <= 10;
+
     // Declaração de variáveis.
     int a <= 0;
     int b <= 1;

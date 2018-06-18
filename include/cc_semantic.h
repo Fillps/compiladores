@@ -52,49 +52,28 @@ Grupo Epsilon:
 #define ARITM           4   // expressões aritméticas
 
 /* Tokens de operadores simples */
-#define GREATER 1
-#define LESSER  2
-#define SUM     3
-#define SUB     4
-#define MULT    5
-#define DIV     6
-#define MOD     7
-#define POT     8
+#define SEM_GREATER 1
+#define SEM_LESSER  2
+#define SEM_SUM     3
+#define SEM_SUB     4
+#define SEM_MULT    5
+#define SEM_DIV     6
+#define SEM_MOD     7
+#define SEM_POT     8
 
-#define SCOPE_SIZE 1000
-#define PARAM_SIZE 100
-#define FIELD_SIZE 100
 #define UNDECLARED 0
 #define GLOBAL_SCOPE 0
-
-typedef struct id_value{
-    void* value[SCOPE_SIZE];
-    int type[SCOPE_SIZE];
-    void* decl_info[SCOPE_SIZE];
-    int scope_length;
-}id_value_t;
-
-typedef struct function_info{
-    int type;
-    int param_type[PARAM_SIZE];
-    symbol_t* param_id[PARAM_SIZE];
-    int params_length;
-}function_info_t;
-
-typedef struct class_info{
-    int field_type[FIELD_SIZE];
-    symbol_t* field_id[FIELD_SIZE];
-    int field_length;
-}class_info_t;
 
 void scope_init();
 void start_scope();
 void end_scope();
 
-void check_declared(symbol_t* symbol, int type);
+int check_declared(symbol_t* symbol);
 void declare(symbol_t* symbol, int type);
+void declare_vector(symbol_t* symbol, int type, int* size);
 void declare_function(symbol_t* symbol, int type);
 void declare_non_primitive(symbol_t* symbol, int type, symbol_t* class_type);
+void declare_vector_non_primitive(symbol_t* symbol, int type, symbol_t* class_symbol, int* size);
 void declare_class(symbol_t* symbol);
 
 void create_params();
@@ -102,11 +81,11 @@ void add_param(symbol_t* symbol, int type);
 void create_class_fields();
 void class_add_field(symbol_t* symbol, int type);
 
-void check_usage_variable(symbol_t* symbol);
-void check_usage_vector(symbol_t* symbol);
+void check_usage_variable(comp_tree_t* tree);
+void check_usage_vector(comp_tree_t* tree);
 void check_usage_function(comp_tree_t* tree);
-void check_usage_attribute(symbol_t* class_var, symbol_t* attribute);
-void check_var_assignment(symbol_t* var, int var_type, int exp_type);
+void check_usage_attribute(comp_tree_t* tree);
+void check_var_assignment(comp_tree_t* tree, int var_type, int exp_type);
 void check_condition(comp_tree_t* exp, int token);
 
 int get_var_type(symbol_t* var);
