@@ -13,6 +13,7 @@ Grupo Epsilon:
 #include "cc_ast.h"
 #include "cc_tree.h"
 #include "cc_semantic.h"
+#include "cc_dict.h"
 
 static FILE *cfp = NULL;
 iloc_t** iloc_list;
@@ -304,13 +305,27 @@ iloc_t* code_generator(comp_tree_t *tree){
  */
 iloc_t * iloc_dup(iloc_t* iloc){
     iloc_t* dup = NULL;
-    while (iloc->prev){
-        dup = append_iloc(create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3), dup);
-        dup->label = iloc->label;
+    iloc_t* dup_aux;
+    comp_dict_t *dict = dict_new();
+
+    while (iloc){
+        dup_aux = create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3);
+        if (iloc->type == ILOC_JUMPI)
+            change_labels(dict, &dup_aux->op3, iloc->op3);
+        else if (iloc->type == ILOC_CBR){
+            change_labels(dict, &dup_aux->op2, iloc->op2);
+            change_labels(dict, &dup_aux->op3, iloc->op3);
+        }
+        if (iloc->label)
+            change_labels(dict, &dup_aux->label, iloc->label);
+
+        dup = append_iloc(dup_aux, dup);
         iloc = iloc->prev;
     }
-    dup = append_iloc(create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3), dup);
-    dup->label = iloc->label;
+    for (int i = 0; i < dict->size; i++)
+        if (dict->data[i])
+            dict_remove(dict, (dict->data[i])->key);
+    dict_free(dict);
     return dup;
 }
 
@@ -328,7 +343,7 @@ iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc) {
     // append a ultima exp da lista
     atrib_aux_tree = createASTBinaryNode(AST_ATRIBUICAO, NULL, tree->first, aux_tree);
     return append_iloc(append_iloc(append_iloc(
-            ret, atribuicao_iloc(atrib_aux_tree)), iloc_dup(block)), cc[3]);
+            ret, atribuicao_iloc(atrib_aux_tree)), block), cc[3]);
 }
 
 iloc_t* vetor_indexando_iloc(comp_tree_t *tree, iloc_t **cc){

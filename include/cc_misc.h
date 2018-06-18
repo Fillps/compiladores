@@ -1,6 +1,7 @@
 #ifndef __MISC_H
 #define __MISC_H
 #include <stdio.h>
+#include "cc_dict.h"
 /*
   Constantes a serem utilizadas para diferenciar os lexemas que estão
   registrados na tabela de símbolos.
@@ -69,6 +70,8 @@ int get_global_address(int size);
 int get_local_address(int size);
 char* insert_minus_in_str(char* str);
 void add_to_tmp_list(void *item);
+
+void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value);
 
 #include "cc_tree.h"
 int get_variable_type(comp_tree_t* tree);

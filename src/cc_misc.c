@@ -266,3 +266,17 @@ int size_of(int type){
     }
     return size;
 }
+
+/*
+ * Troca o label mepeada por um dict
+ */
+void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value){
+    char* new_label = dict_get(dict, old_value);
+    if (new_label)
+        *new_value_ptr = new_label;
+    else{
+        new_label = create_label();
+        dict_put(dict, old_value, new_label);
+        *new_value_ptr = new_label;
+    }
+}
