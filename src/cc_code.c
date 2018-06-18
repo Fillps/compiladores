@@ -318,16 +318,14 @@ iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc) {
     comp_tree_t *aux_tree = tree->first->next;
     comp_tree_t *atrib_aux_tree;
     iloc_t *ret = NULL, *block = tree->first->next->next->value->iloc, *id = tree->first->value->iloc;
-    iloc_t * atr;
     while (aux_tree->value->type == AST_EXP_LIST){
         tree->first->value->iloc = iloc_dup(id);
-        //aux_tree->first->value->iloc = iloc_dup(val);
         atrib_aux_tree = createASTBinaryNode(AST_ATRIBUICAO, NULL, tree->first, aux_tree->first);
         ret = append_iloc(append_iloc(
                 ret, atribuicao_iloc(atrib_aux_tree)), iloc_dup(block));
         aux_tree = aux_tree->last;
     }
-    //aux_tree->value->iloc = iloc_dup(val);
+    // append a ultima exp da lista
     atrib_aux_tree = createASTBinaryNode(AST_ATRIBUICAO, NULL, tree->first, aux_tree);
     return append_iloc(append_iloc(append_iloc(
             ret, atribuicao_iloc(atrib_aux_tree)), iloc_dup(block)), cc[3]);
