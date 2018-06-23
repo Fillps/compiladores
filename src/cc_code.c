@@ -82,7 +82,7 @@ void build_iloc_code(comp_tree_t* tree){
     code = code_generator(tree);    // Gera o código
 
     iloc_t* init_rarp = create_iloc(ILOC_LOADI,"1024", NULL, "rarp");
-    iloc_t* init_rsp = create_iloc(ILOC_LOADI,"1024", NULL, "rsp");
+    iloc_t* init_rsp = create_iloc(ILOC_LOADI,"1028", NULL, "rsp");
     sprintf(rbss_address, "%i", iloc_list_length);  // Converte o número de instruções para string
     //TODO verificar por que o tamanho da lista de instruções é maior do que o número de instruções
     iloc_t* init_rbss = create_iloc(ILOC_LOADI,rbss_address, NULL, "rbss");
@@ -322,12 +322,18 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_FUNCAO:
             ret = append_iloc_list(cc, tree->childnodes);
-            if(strcmp(tree->value->symbol->lexeme, "main") == 0){
-                main_label = create_label();
-                ret = invert_iloc_list(ret);
-                ret->label = main_label;
-                ret = invert_iloc_list(ret);
-            }
+            ret = invert_iloc_list(ret);
+            id_value_t* value = tree->value->symbol->value;
+            if(value->label[tree->value->var_scope] == NULL){
+                ret->label = create_label();
+                value->label[tree->value->var_scope] = ret->label;
+            }else
+                ret->label = value->label[tree->value->var_scope];
+
+            if(strcmp(tree->value->symbol->lexeme, "main") == 0)
+                main_label = ret->label;
+
+            ret = invert_iloc_list(ret);
             break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -339,10 +345,28 @@ iloc_t* code_generator(comp_tree_t *tree){
 }
 
 iloc_t* call_sequence(comp_tree_t* tree){
-    iloc_t* seq = create_iloc(ILOC_LOADI, "0", NULL, "rarp");
+    iloc_t* seq;
 
-    //iloc_t* aux1 = NULL;
-    printf("end: %d\n", iloc_list_length);
+    // Guarda endereço de retorno
+    char* callback_address = malloc(20*sizeof(char));
+    sprintf(callback_address, "%i", iloc_list_length+4);
+    seq = create_iloc(ILOC_STOREAI, callback_address, "rsp", "0");
+
+    // Guarda sp
+    iloc_t* store_rsp = create_iloc(ILOC_STOREAI, "rsp", "rsp", "4");
+
+    // Guarda rarp
+    iloc_t* store_rarp = create_iloc(ILOC_STOREAI, "rarp", "rsp", "8");
+
+    // Jump para a funcao
+    id_value_t* value = tree->value->symbol->value;
+    value->label[tree->value->var_scope] = create_label();
+    iloc_t* jmp = create_iloc(ILOC_JUMPI, NULL, NULL, value->label[tree->value->var_scope]);
+
+    seq = append_iloc(
+              seq, append_iloc(
+                  store_rsp, append_iloc(
+                      store_rarp, jmp)));
 
     return seq;
 }

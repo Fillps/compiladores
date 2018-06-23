@@ -38,6 +38,7 @@ typedef struct id_value{
     void* decl_info[SCOPE_SIZE];
     int address[SCOPE_SIZE];
     int size;
+    char* label[SCOPE_SIZE];
 }id_value_t;
 
 typedef struct tmp_value{
@@ -60,7 +61,7 @@ typedef struct class_info{
 
 typedef struct activation_registry{
     int static_bond;
-    int return_address;
+    int return_value;
 }ra_t;
 
 int getLineNumber (void);
