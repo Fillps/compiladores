@@ -58,6 +58,11 @@ typedef struct class_info{
     int field_length;
 }class_info_t;
 
+typedef struct activation_registry{
+    int static_bond;
+    int return_address;
+}ra_t;
+
 int getLineNumber (void);
 void yyerror (char const *mensagem);
 void main_init (int argc, char **argv);

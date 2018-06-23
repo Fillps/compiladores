@@ -18,6 +18,7 @@ Grupo Epsilon:
 static FILE *cfp = NULL;
 iloc_t** iloc_list;
 int iloc_list_length;
+char* main_label = NULL;
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
@@ -39,6 +40,7 @@ void concat_false(comp_tree_t* tree);
 void short_circuit_literal(comp_tree_t* tree, iloc_t **iloc);
 void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc);
 iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc);
+iloc_t* call_sequence(comp_tree_t* tree);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
@@ -75,7 +77,31 @@ void code_close(){
 void build_iloc_code(comp_tree_t* tree){
     iloc_list = calloc(MAX_ILOC, sizeof(iloc_t*));
     iloc_list_length = 0;
-    print_iloc_list(invert_iloc_list(code_generator(tree)));
+    iloc_t *code;
+    char rbss_address[10];
+    code = code_generator(tree);    // Gera o código
+
+    iloc_t* init_rarp = create_iloc(ILOC_LOADI,"1024", NULL, "rarp");
+    iloc_t* init_rsp = create_iloc(ILOC_LOADI,"1024", NULL, "rsp");
+    sprintf(rbss_address, "%i", iloc_list_length);  // Converte o número de instruções para string
+    //TODO verificar por que o tamanho da lista de instruções é maior do que o número de instruções
+    iloc_t* init_rbss = create_iloc(ILOC_LOADI,rbss_address, NULL, "rbss");
+    iloc_t* jmp_main;
+
+    if(main_label == NULL){
+        main_label = "5";
+        printf("WARNING: main() function not found!\n");
+    }
+    jmp_main = create_iloc(ILOC_JUMPI, NULL, NULL, main_label);
+
+    print_iloc_list(
+        invert_iloc_list(
+            append_iloc(
+                init_rarp, append_iloc(
+                    init_rsp, append_iloc(
+                        init_rbss, append_iloc(
+                            jmp_main, code))))));
+
     free_iloc_list();
 }
 
@@ -291,6 +317,18 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_EXP_LIST:
             break;
+        case AST_CHAMADA_DE_FUNCAO:
+            ret = call_sequence(tree);
+            break;
+        case AST_FUNCAO:
+            ret = append_iloc_list(cc, tree->childnodes);
+            if(strcmp(tree->value->symbol->lexeme, "main") == 0){
+                main_label = create_label();
+                ret = invert_iloc_list(ret);
+                ret->label = main_label;
+                ret = invert_iloc_list(ret);
+            }
+            break;
         default:
             ret = append_iloc_list(cc, tree->childnodes);
     }
@@ -298,6 +336,15 @@ iloc_t* code_generator(comp_tree_t *tree){
     tree->value->iloc = ret;
     free(cc);
     return ret;
+}
+
+iloc_t* call_sequence(comp_tree_t* tree){
+    iloc_t* seq = create_iloc(ILOC_LOADI, "0", NULL, "rarp");
+
+    //iloc_t* aux1 = NULL;
+    printf("end: %d\n", iloc_list_length);
+
+    return seq;
 }
 
 /*

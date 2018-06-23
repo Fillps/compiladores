@@ -96,7 +96,7 @@ static inline char *__gv_description_from_type (int tipo)
 }
 
 /**
- * gv_init 
+ * gv_init
  *
  * Esta função deve ser chamada para inicializar o arquivo onde o
  * grafo será registrado. Um nome de arquivo, opcional, pode ser
@@ -120,7 +120,7 @@ void gv_init (const char *filename)
       abort();
     }
   }else{
-    fp = stderr;    
+    fp = stderr;
   }
   fprintf (fp, "digraph G {\n");
 
@@ -151,14 +151,14 @@ void gv_close (void)
  * gv_declare
  *
  * Esta função deve ser chamada para declarar um nó da AST,
- * registrando esse novo nó no arquivo. Ela tem três parâmetros: 
+ * registrando esse novo nó no arquivo. Ela tem três parâmetros:
 
  * 1/ tipo, que deve ser obrigatoriamente um dos valores das
- * constantes declaradas no arquivo iks_ast.h; 
+ * constantes declaradas no arquivo iks_ast.h;
 
  * 2/ pointer, que deve ser um pointeiro para o nó da árvore AST que
  * está sendo declarado servindo a partir de agora como identificador
- * único do nó; e 
+ * único do nó; e
 
  * 3/ name, que deve ser um lexema válido somente se o tipo for um
  * desses três valores: AST_IDENTIFICADOR (o lexema do
