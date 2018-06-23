@@ -15,8 +15,8 @@ Este programa depende das seguintes bibliotecas
 git clone git@github.com:schnorr/pc.git
 mkdir -p pc/build
 cd pc/build
-# Ativar compilação para a Etapa 5
-cmake -DE1=OFF -DE2=OFF -DE3=OFF -DE4=OFF -DE5=ON ..
+# Ativar compilação para a Etapa 6
+cmake -DE1=OFF -DE2=OFF -DE3=OFF -DE4=OFF -DE5=OFF -DE6=ON ..
 # Compilar
 make
 # Executar
@@ -28,7 +28,7 @@ make
 No diretório que tem o binário =main=, execute
 
 #+begin_src shell :results output
-ctest -R e5
+ctest -R e6
 #+end_src
 
 * Comentários
