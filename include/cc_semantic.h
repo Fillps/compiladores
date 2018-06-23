@@ -47,7 +47,7 @@ Grupo Epsilon:
 
 /* Tipos de operações com dois operandos */
 #define CMP_ARITM       1   // ex: '>', '<=', '<', etc
-#define CMP_BOOL        2   // ex: and, or
+#define BOOL            2   // ex: and, or
 #define CMP_ARITM_BOOL  3   // ex: '==', que pode comparar tanto booleanos quanto números
 #define ARITM           4   // expressões aritméticas
 

@@ -192,6 +192,7 @@ void invalid_exp(comp_tree_t* exp_tree, char* correct_type, int wrong_type, char
 
     fprintf (stderr, "IKS_ERROR_INVALID_EXP(line: %d, id: %s) \'%s\' is a \'%s\' expression, but was found one \'%s\' operand.\n",
             line, token, token, correct_type, __type_description(wrong_type));
+    exit(IKS_ERROR_INVALID_EXP);
 }
 
 void invalid_condition_error(comp_tree_t* exp_tree, char* comand, char* correct_type, int wrong_type){
@@ -529,7 +530,7 @@ void check_var_assignment(comp_tree_t* var, int var_type, int exp_type){
     if(var_type != exp_type &&
        decl_variable(var_type) != decl_vector(exp_type) &&
        decl_vector(var_type) != decl_variable(exp_type))
-       wrong_type_assignment(var->value->symbol, var_type, exp_type);
+       wrong_type_assignment(var->first->value->symbol, var_type, exp_type);
 
 }
 
@@ -551,6 +552,7 @@ char* get_token_name(int token){
             break;
         case TK_OC_AND:
             name = "&&";
+            break;
         case TK_OC_OR:
             name = "||";
             break;
@@ -626,14 +628,17 @@ void set_unary_node_value_type(comp_tree_t* node, int value_type){
 void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){
     int type_left = node->first->value->value_type;
     int type_right = node->last->value->value_type;
+    char* op_description;
 
     switch (op_type) {
-				case CMP_BOOL:
-            if(type_left != decl_variable(POA_LIT_BOOL)){
+				case BOOL:
+            if(type_left != decl_variable(POA_LIT_BOOL)
+               && type_left != decl_vector(POA_LIT_BOOL)){
                 node->value->value_type = type_left;
                 invalid_exp(node, "boolean", type_left, get_token_name(op_token));
             }
-            else if(type_right != decl_variable(POA_LIT_BOOL)){
+            else if(type_right != decl_variable(POA_LIT_BOOL)
+                    && type_right != decl_vector(POA_LIT_BOOL)){
                 node->value->value_type = type_right;
                 invalid_exp(node, "boolean", type_right, get_token_name(op_token));
             }
@@ -641,37 +646,76 @@ void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token){
                 node->value->value_type = decl_variable(POA_LIT_BOOL);
             break;
         case CMP_ARITM_BOOL:
-            if(type_left == decl_variable(POA_LIT_BOOL))
-                if(type_right == decl_variable(POA_LIT_BOOL)){
+            if(type_left == decl_variable(POA_LIT_BOOL) || type_left == decl_vector(POA_LIT_BOOL)) {
+                if(type_right == decl_variable(POA_LIT_BOOL) || type_right == decl_vector(POA_LIT_BOOL))
                     node->value->value_type = decl_variable(POA_LIT_BOOL);
-                    break;
-                }
                 else{
                     node->value->value_type = type_right;
-                    invalid_exp(node, "boolean", type_right, get_token_name(op_token));
+                    invalid_exp(node, "compare", type_right, get_token_name(op_token));
                 }
-        case CMP_ARITM:
-            if(type_left != decl_variable(POA_LIT_INT) && type_left != decl_variable(POA_LIT_FLOAT)){
-                node->value->value_type = type_left;
-                invalid_exp(node, "aritmetic", type_left, get_token_name(op_token));
             }
-            else if(type_right != decl_variable(POA_LIT_INT) && type_right != decl_variable(POA_LIT_FLOAT)){
+            else if(type_left != decl_variable(POA_LIT_INT)
+                    && type_left != decl_variable(POA_LIT_FLOAT)
+                    && type_left != decl_vector(POA_LIT_INT)
+                    && type_left != decl_vector(POA_LIT_FLOAT)
+                    && type_left != decl_variable(POA_LIT_CHAR)
+                    && type_left != decl_vector(POA_LIT_CHAR)){
+                node->value->value_type = type_left;
+                invalid_exp(node, "compare", type_left, get_token_name(op_token));
+            }
+            else if(type_right != decl_variable(POA_LIT_INT)
+                    && type_right != decl_variable(POA_LIT_FLOAT)
+                    && type_right != decl_vector(POA_LIT_INT)
+                    && type_right != decl_vector(POA_LIT_FLOAT)
+                    && type_right != decl_variable(POA_LIT_CHAR)
+                    && type_right != decl_vector(POA_LIT_CHAR)){
                 node->value->value_type = type_right;
-                invalid_exp(node, "aritmetic", type_right, get_token_name(op_token));
+                invalid_exp(node, "compare", type_right, get_token_name(op_token));
+            }
+            else
+                node->value->value_type = decl_variable(POA_LIT_BOOL);
+            break;
+        case CMP_ARITM:
+            if(type_left != decl_variable(POA_LIT_INT)
+               && type_left != decl_variable(POA_LIT_FLOAT)
+               && type_left != decl_vector(POA_LIT_INT)
+               && type_left != decl_vector(POA_LIT_FLOAT)
+               && type_left != decl_variable(POA_LIT_CHAR)
+               && type_left != decl_vector(POA_LIT_CHAR)){
+                node->value->value_type = type_left;
+                invalid_exp(node, "aritmetic compare", type_left, get_token_name(op_token));
+            }
+            else if(type_right != decl_variable(POA_LIT_INT)
+                    && type_right != decl_variable(POA_LIT_FLOAT)
+                    && type_right != decl_vector(POA_LIT_INT)
+                    && type_right != decl_vector(POA_LIT_FLOAT)
+                    && type_right != decl_variable(POA_LIT_CHAR)
+                    && type_right != decl_vector(POA_LIT_CHAR)){
+                node->value->value_type = type_right;
+                invalid_exp(node, "aritmetic compare", type_right, get_token_name(op_token));
             }
             else
                 node->value->value_type = decl_variable(POA_LIT_BOOL);
             break;
         case ARITM:
-            if(type_left != decl_variable(POA_LIT_INT) && type_left != decl_variable(POA_LIT_FLOAT)){
+            if(type_left != decl_variable(POA_LIT_INT)
+               && type_left != decl_variable(POA_LIT_FLOAT)
+               && type_left != decl_vector(POA_LIT_INT)
+               && type_left != decl_vector(POA_LIT_FLOAT)){
                 node->value->value_type = type_left;
                 invalid_exp(node, "aritmetic", type_left, get_token_name(op_token));
             }
-            else if(type_right != decl_variable(POA_LIT_INT) && type_right != decl_variable(POA_LIT_FLOAT)){
+            else if(type_right != decl_variable(POA_LIT_INT)
+                    && type_right != decl_variable(POA_LIT_FLOAT)
+                    && type_right != decl_vector(POA_LIT_INT)
+                    && type_right != decl_vector(POA_LIT_FLOAT)){
                 node->value->value_type = type_right;
                 invalid_exp(node, "aritmetic", type_right, get_token_name(op_token));
             }
-            else if(type_left == decl_variable(POA_LIT_FLOAT) || type_right == decl_variable(POA_LIT_FLOAT))
+            else if(type_left == decl_variable(POA_LIT_FLOAT)
+                    || type_right == decl_variable(POA_LIT_FLOAT)
+                    || type_left == decl_vector(POA_LIT_FLOAT)
+                    || type_right == decl_vector(POA_LIT_FLOAT))
                 node->value->value_type = decl_variable(POA_LIT_FLOAT);
             else
                 node->value->value_type = decl_variable(POA_LIT_INT);
