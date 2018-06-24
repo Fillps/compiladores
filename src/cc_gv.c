@@ -174,6 +174,7 @@ void gv_declare (const int tipo, const void *pointer, char *name)
 
   switch (tipo){
   case AST_FUNCAO:
+  case AST_FUNCAO_MAIN:
   case AST_IDENTIFICADOR:
   case AST_LITERAL:
     if (!name){

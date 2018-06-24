@@ -7,6 +7,7 @@
 #define __CC_AST_H
 #define AST_PROGRAMA             0
 #define AST_FUNCAO               1
+#define AST_FUNCAO_MAIN         43
 //Comandos
 #define AST_IF_ELSE              2
 #define AST_DO_WHILE             3

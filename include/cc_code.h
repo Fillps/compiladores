@@ -76,6 +76,10 @@ Grupo Epsilon:
 #define ILOC_CMP_GT  45
 #define ILOC_CMP_NE  46
 
+// Operations with regs
+#define REG_INC   0
+#define REG_DEC   1
+
 typedef struct iloc{
     int type;
     char* label;
