@@ -438,6 +438,10 @@ void check_usage_attribute(comp_tree_t* tree){
     undeclared_error(class_var);
 }
 
+void end_function(){
+    function_info->local_var_size = reset_local_address();
+}
+
 void create_params(){
     function_info = calloc(1, sizeof(function_info_t));
     function_info->params_length = 0;
@@ -447,6 +451,7 @@ void add_param(symbol_t* symbol, int type){
     function_info->param_id[function_info->params_length] = symbol;
     function_info->param_type[function_info->params_length] = decl_variable(type);
     function_info->params_length++;
+    declare(symbol, type);
 }
 
 void create_class_fields(){

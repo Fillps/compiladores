@@ -78,6 +78,7 @@ void declare_class(symbol_t* symbol);
 
 void create_params();
 void add_param(symbol_t* symbol, int type);
+void end_function();
 void create_class_fields();
 void class_add_field(symbol_t* symbol, int type);
 

@@ -57,6 +57,7 @@ typedef struct function_info{
     int param_type[PARAM_SIZE];
     symbol_t* param_id[PARAM_SIZE];
     int params_length;
+    int local_var_size;
     ra_t* ra[SCOPE_SIZE];
 }function_info_t;
 
@@ -74,11 +75,11 @@ symbol_t* insert_symbol(int token, char* lexeme, int lengh);
 
 char* create_reg();
 char* create_label();
+int reset_local_address();
 int get_global_address(int size);
 int get_local_address(int size);
 char* insert_minus_in_str(char* str);
 void add_to_tmp_list(void *item);
-
 void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value);
 
 #include "cc_tree.h"

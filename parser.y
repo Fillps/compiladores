@@ -214,11 +214,18 @@ vetor_global:
 
 /* Função */
 funcao:
-    static_opc tipo TK_IDENTIFICADOR { create_params(); } params { declare_function($3, $2); } corpo  { if ($7 != NULL)
-                                                                                                            $$ = createASTUnaryNode(AST_FUNCAO, $3, $7);
-                                                                                                        else
-                                                                                                            $$ = createASTNode(AST_FUNCAO, $3);
-                                                                                                      };
+    static_opc tipo
+    TK_IDENTIFICADOR { create_params(); start_scope(); }
+    params { declare_function($3, $2); }
+    '{' bloco_comando '}'
+    {
+      end_scope();
+      end_function();
+      if ($8 != NULL)
+          $$ = createASTUnaryNode(AST_FUNCAO, $3, $8);
+      else
+          $$ = createASTNode(AST_FUNCAO, $3);
+    };
 
 params:
      '(' param_lista ')'

@@ -14,6 +14,7 @@ extern comp_tree_t* ast;
 comp_dict_t* symbol_table;
 void** tmp_list;
 int tmp_list_length;
+int local_address;
 
 void create_int(symbol_t* symbol, char* key, char* lexeme, int length);
 void create_float(symbol_t* symbol, char* key, char* lexeme, int length);
@@ -22,6 +23,7 @@ void create_string(symbol_t* symbol, char* key, char* lexeme, int length);
 void create_bool(symbol_t* symbol, char* key, int bool, char* lexeme, int length);
 void create_id(symbol_t* symbol, char* key, char* lexeme, int length);
 void add_to_tmp_list(void *item);
+int reset_local_address();
 
 void scope_init();
 
@@ -45,6 +47,7 @@ void main_init (int argc, char **argv)
 {
     symbol_table = dict_new();
     scope_init();
+    reset_local_address();
     tmp_list = calloc(DICT_SIZE, sizeof(char));
     tmp_list_length = 0;
     gv_init(GV_OUTPUT);
@@ -225,9 +228,14 @@ int get_global_address(int size){
 }
 
 int get_local_address(int size){
-    static int address = 0;
-    int tmp = address;
-    address += size;
+    int tmp = local_address;
+    local_address += size;
+    return tmp;
+}
+
+int reset_local_address(){
+    int tmp = local_address;
+    local_address = 0;
     return tmp;
 }
 
