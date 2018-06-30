@@ -2,6 +2,7 @@
   Epsilon - Douglas Flores e Filipe Santos
 */
 %code requires{
+#include <string.h>
 #include "main.h"
 #include "cc_misc.h"
 #include "cc_tree.h"
@@ -214,15 +215,17 @@ vetor_global:
 
 /* Função */
 funcao:
-    static_opc tipo
-    TK_IDENTIFICADOR { create_params(); start_scope(); }
+    static_opc tipo TK_IDENTIFICADOR { create_params(); start_scope(); }
     params { declare_function($3, $2); }
     '{' bloco_comando '}'
     {
       end_scope();
       end_function();
       if ($8 != NULL)
-          $$ = createASTUnaryNode(AST_FUNCAO, $3, $8);
+          if(strcmp($3->lexeme, "main") != 0)
+              $$ = createASTUnaryNode(AST_FUNCAO, $3, $8);
+          else
+              $$ = createASTUnaryNode(AST_FUNCAO_MAIN, $3, $8);
       else
           $$ = createASTNode(AST_FUNCAO, $3);
     };
