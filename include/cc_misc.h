@@ -46,19 +46,12 @@ typedef struct tmp_value{
     void* value;
 }tmp_info_t;
 
-typedef struct activation_registry{
-    int static_bond;
-    int return_value;
-    char* return_reg;
-}ra_t;
-
 typedef struct function_info{
     int type;
     int param_type[PARAM_SIZE];
     symbol_t* param_id[PARAM_SIZE];
     int params_length;
     int local_var_size;
-    ra_t* ra[SCOPE_SIZE];
 }function_info_t;
 
 typedef struct class_info{
@@ -86,6 +79,6 @@ void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value);
 int get_variable_type(comp_tree_t* tree);
 
 int size_of(int type);
-int string_to_bool(char* str);
+char* string_to_bool(char* str);
 
 #endif

@@ -404,24 +404,31 @@ iloc_t* call_sequence(comp_tree_t* tree){
     char* param_address = malloc(240*sizeof(char));
     for(i = 0; i < tree->childnodes-1; i++){
         param_tree = param_tree->next;
+        int store_type = ILOC_STOREAI;
         sprintf(param_address+12*i, "%i", top);
         if(param_tree->value->type == AST_LITERAL){
             if(param_tree->value->value_type == decl_variable(POA_LIT_INT) || param_tree->value->value_type == decl_variable(POA_LIT_FLOAT))
                 store_param = append_iloc(store_param,
                   create_iloc(ILOC_LOADI, param_tree->value->symbol->lexeme, NULL, reg));
             else if(param_tree->value->value_type == decl_variable(POA_LIT_BOOL))
-                //TODO store_param = create_iloc(ILOC_LOADI, string_to_bool(param_tree->value->symbol->lexeme), NULL, reg);
-                printf("TO DO bool\n");
-            else if(param_tree->value->value_type == decl_variable(POA_LIT_CHAR))
-                //TODO store_param = create_iloc(ILOC_CLOAD, param_tree->value->symbol->lexeme, NULL, reg);
-                printf("TO DO char\n");
+                store_param = append_iloc(store_param,
+                  create_iloc(ILOC_LOADI, string_to_bool(param_tree->value->symbol->lexeme), NULL, reg));
+            else if(param_tree->value->value_type == decl_variable(POA_LIT_CHAR)){
+                store_param = append_iloc(store_param,
+                  create_iloc(ILOC_CLOAD, param_tree->value->symbol->lexeme, NULL, reg));
+                store_type = ILOC_CSTORE;
+            }
             else
                 //TODO para string
                 printf("TO DO string\n");
-            store_param = append_iloc(store_param,
-              create_iloc(ILOC_STOREAI, reg, "rsp", param_address+12*i));
-            top += size_of(param_tree->value->value_type);
         }
+        else if(param_tree->value->type == AST_IDENTIFICADOR){
+            store_param = append_iloc(store_param,
+                            create_iloc(ILOC_LOADAI, "rarp", get_char_address(param_tree), reg));
+        }
+        store_param = append_iloc(store_param,
+          create_iloc(store_type, reg, "rsp", param_address+12*i));
+        top += 4;//size_of(param_tree->value->value_type);
     }
 
     //calc do endereço de retorno
@@ -469,7 +476,7 @@ iloc_t* call_epilogue(comp_tree_t* tree){
 iloc_t* return_sequence(int type, comp_tree_t* tree){
     iloc_t* return_code;
     char* reg = NULL;
-    iloc_t* aux1, *aux2, *aux3, *aux4, *aux5, *aux6;
+    iloc_t *aux1, *aux2, *aux3, *aux4, *aux5, *aux6;
 
     if(tree->last->value->type == AST_LITERAL){
         reg = create_reg();
@@ -478,11 +485,11 @@ iloc_t* return_sequence(int type, comp_tree_t* tree){
 
         return_code = append_iloc(return_code, aux1);
     }else if(tree->last->value->type == AST_IDENTIFICADOR){
-      reg = create_reg();
-      return_code = create_iloc(ILOC_LOADAI, tree->last->value->symbol->lexeme, NULL, reg);
-      aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
+        reg = create_reg();
+        return_code = create_iloc(ILOC_LOADAI, tree->last->value->symbol->lexeme, NULL, reg);
+        aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
 
-      return_code = append_iloc(return_code, aux1);
+        return_code = append_iloc(return_code, aux1);
     }
 
     // Carrega o endereço, o rsp e o rarp

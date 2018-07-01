@@ -289,9 +289,9 @@ void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value){
     }
 }
 
-int string_to_bool(char* str){
+char* string_to_bool(char* str){
     if(strcmp(str, "true") == 0 || strcmp(str, "TRUE") == 0)
-        return 1;
+        return "1";
     else
-        return 0;
+        return "0";
 }
