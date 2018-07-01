@@ -325,8 +325,18 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_FUNCAO_MAIN:
             ret = append_iloc_list(cc, tree->childnodes);
-            ret = invert_iloc_list(ret);
+
+            // reserva espaço para as variáveis locais
             id_value_t* value = tree->value->symbol->value;
+            function_info_t* func = value->decl_info[0];
+
+            char* size_vars;
+            sprintf(size_vars, "%d", func->local_var_size);
+
+            iloc_t* reserve = create_iloc(ILOC_ADDI, "rsp", size_vars, "rsp");
+            ret = append_iloc(reserve, ret);
+
+            ret = invert_iloc_list(ret);
             // Se não tem label, cria
             if(value->label[tree->value->var_scope] == NULL){
                 ret->label = create_label();
@@ -444,8 +454,12 @@ iloc_t* call_epilogue(comp_tree_t* tree){
     // Move o rarp para a mesma posição do rsp
     call = create_iloc(ILOC_I2I, "rsp", NULL, "rarp");
 
+    // Reserva espaço para as vars locais
+    id_value_t* value = tree->value->symbol->value;
+    function_info_t* func_info = value->decl_info[0];
+
     // Atualiza o rsp
-    iloc_t* update_rsp = update_reg("rsp", REG_INC, 16);
+    iloc_t* update_rsp = update_reg("rsp", REG_INC, func_info->local_var_size + 16);
 
     call = append_iloc(call, update_rsp);
 
@@ -472,7 +486,7 @@ iloc_t* return_sequence(int type, comp_tree_t* tree){
 iloc_t* update_reg(char* reg, int op, int value){
     iloc_t* ret;
     char* val = malloc(10*sizeof(char));
-    sprintf(val, "%i", 16);
+    sprintf(val, "%i", value);
 
     if(op == REG_INC)
         ret = create_iloc(ILOC_ADDI, reg, val, reg);
