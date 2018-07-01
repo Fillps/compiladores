@@ -219,13 +219,18 @@ funcao:
     params { declare_function($3, $2); }
     '{' bloco_comando '}'
     {
+      if(strcmp($3->lexeme, "main") == 0)
+          set_main_scope(get_current_scope());
+
       end_scope();
       end_function();
+
       if ($8 != NULL)
           if(strcmp($3->lexeme, "main") != 0)
               $$ = createASTUnaryNode(AST_FUNCAO, $3, $8);
-          else
+          else{
               $$ = createASTUnaryNode(AST_FUNCAO_MAIN, $3, $8);
+          }
       else
           $$ = createASTNode(AST_FUNCAO, $3);
     };
