@@ -43,7 +43,7 @@ void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc);
 iloc_t *foreach_iloc(comp_tree_t *tree, iloc_t **cc);
 iloc_t* call_sequence(comp_tree_t* tree);
 iloc_t* call_epilogue(comp_tree_t* tree);
-iloc_t* return_sequence(int type, comp_tree_t* tree);
+iloc_t* return_sequence(comp_tree_t* tree);
 iloc_t* update_reg(char* reg, int op, int value);
 
 void code_init(const char * filename){
@@ -367,7 +367,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             break;
         case AST_RETURN:
             ret = append_iloc_list(cc, tree->childnodes);
-            ret = append_iloc(ret, return_sequence(AST_RETURN, tree));
+            ret = append_iloc(ret, return_sequence(tree));
 
             break;
         default:
@@ -430,7 +430,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
     iloc_t* jmp = create_iloc(ILOC_JUMPI, NULL, NULL, value->label[tree->value->var_scope]);
 
     // carrega o resultado da função
-    iloc_t* load_result = create_iloc(ILOC_LOADAI, "rarp", "12", create_reg());
+    iloc_t* load_result = create_iloc(ILOC_LOADAI, "rsp", "12", create_reg());
 
     seq = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
               address_calc, seq), store_rsp), store_rarp), store_param), jmp), load_result);
@@ -456,24 +456,13 @@ iloc_t* call_epilogue(comp_tree_t* tree){
     return call;
 }
 
-iloc_t* return_sequence(int type, comp_tree_t* tree){
+iloc_t* return_sequence(comp_tree_t* tree){
     iloc_t* return_code;
-    char* reg = NULL;
+    char* reg = create_reg();;
     iloc_t *aux1, *aux2, *aux3, *aux4, *aux5, *aux6;
+    aux1 = tree->last->value->iloc;
 
-    if(tree->last->value->type == AST_LITERAL){
-        reg = create_reg();
-        return_code = create_iloc(ILOC_LOADI, tree->last->value->symbol->lexeme, NULL, reg);
-        aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
-
-        return_code = append_iloc(return_code, aux1);
-    }else if(tree->last->value->type == AST_IDENTIFICADOR){
-        reg = create_reg();
-        return_code = create_iloc(ILOC_LOADAI, tree->last->value->symbol->lexeme, NULL, reg);
-        aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
-
-        return_code = append_iloc(return_code, aux1);
-    }
+    return_code = create_iloc(ILOC_STOREAI, aux1->op3, "rarp", "12");
 
     // Carrega o endereço, o rsp e o rarp
     reg = create_reg();
