@@ -401,7 +401,6 @@ iloc_t* call_sequence(comp_tree_t* tree){
     //empilhamento de parâmetros
     iloc_t* store_param = create_iloc(ILOC_NOP, NULL, NULL, NULL);
     comp_tree_t* param_tree = tree->first;
-    char* reg = create_reg();
     int top = 16;
     char* param_address = malloc(240*sizeof(char));
     for(i = 0; i < tree->childnodes-1; i++){
@@ -411,7 +410,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
         store_param = append_iloc(store_param, code_generator(param_tree));
         store_param = append_iloc(store_param,
-          create_iloc(store_type, reg, "rsp", param_address+12*i));
+          create_iloc(store_type, store_param->op3, "rsp", param_address+12*i));
 
         top += 4;//size_of(param_tree->value->value_type);
     }
@@ -423,19 +422,18 @@ iloc_t* call_sequence(comp_tree_t* tree){
     char* reg_address = create_reg();
     iloc_t* address_calc = create_iloc(ILOC_ADDI, "rpc", callback_address, reg_address);
     // Guarda endereço de retorno
-    seq = create_iloc(ILOC_STOREAO, reg_address, "rsp", "0");
+    seq = create_iloc(ILOC_STOREAI, reg_address, "rsp", "0");
 
     // Jump para a funcao
     id_value_t* value = tree->value->symbol->value;
     value->label[tree->value->var_scope] = create_label();
     iloc_t* jmp = create_iloc(ILOC_JUMPI, NULL, NULL, value->label[tree->value->var_scope]);
 
-    seq = append_iloc(
-              address_calc, append_iloc(
-                  seq, append_iloc(
-                      store_rsp, append_iloc(
-                          store_rarp, append_iloc(
-                              store_param, jmp)))));
+    // carrega o resultado da função
+    iloc_t* load_result = create_iloc(ILOC_LOADAI, "rarp", "12", create_reg());
+
+    seq = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
+              address_calc, seq), store_rsp), store_rarp), store_param), jmp), load_result);
 
     return seq;
 }
