@@ -80,6 +80,8 @@ Grupo Epsilon:
 #define REG_INC   0
 #define REG_DEC   1
 
+#define RA_SIZE   16
+
 typedef struct iloc{
     int type;
     char* label;

@@ -469,16 +469,40 @@ iloc_t* call_epilogue(comp_tree_t* tree){
 iloc_t* return_sequence(int type, comp_tree_t* tree){
     iloc_t* return_code;
     char* reg = NULL;
-    iloc_t* return_iloc;
+    iloc_t* aux1, *aux2, *aux3, *aux4, *aux5, *aux6;
 
-    switch (type) {
-      case AST_RETURN:
-          reg = "no_reg";
-          return_iloc = tree->last->value->iloc;
-          reg = return_iloc->op3;
-          return_code = create_iloc(ILOC_STOREAI, reg, "rsp", "0");
-          break;
+    if(tree->last->value->type == AST_LITERAL){
+        reg = create_reg();
+        return_code = create_iloc(ILOC_LOADI, tree->last->value->symbol->lexeme, NULL, reg);
+        aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
+
+        return_code = append_iloc(return_code, aux1);
+    }else if(tree->last->value->type == AST_IDENTIFICADOR){
+      reg = create_reg();
+      return_code = create_iloc(ILOC_LOADAI, tree->last->value->symbol->lexeme, NULL, reg);
+      aux1 = create_iloc(ILOC_STOREAI, reg, "rarp", "12");
+
+      return_code = append_iloc(return_code, aux1);
     }
+
+    // Carrega o endereço, o rsp e o rarp
+    reg = create_reg();
+    char* rA = create_reg();
+    char* rB = create_reg();
+    aux1 = create_iloc(ILOC_LOADAI, "rarp", "0", reg);
+    aux2 = create_iloc(ILOC_LOADAI, "rarp", "4", rA);
+    aux3 = create_iloc(ILOC_LOADAI, "rarp", "8", rB);
+    aux4 = create_iloc(ILOC_I2I, rA, NULL, "rsp");
+    aux5 = create_iloc(ILOC_I2I, rB, NULL, "rarp");
+    aux6 = create_iloc(ILOC_JUMP, NULL, NULL, reg);
+
+    return_code = append_iloc(
+                    return_code, append_iloc(
+                      aux1, append_iloc(
+                        aux2, append_iloc(
+                          aux3, append_iloc(
+                            aux4, append_iloc(
+                              aux5, aux6))))));
 
     return return_code;
 }
@@ -828,7 +852,7 @@ void free_iloc_list(){
 
 char* get_char_address(comp_tree_t *tree){
     char* address = malloc(20*sizeof(char));
-    sprintf(address, "%i", tree->value->address);
+    sprintf(address, "%i", tree->value->address + RA_SIZE);
     add_to_tmp_list(address);
     return address;
 }
