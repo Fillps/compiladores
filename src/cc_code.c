@@ -19,6 +19,7 @@ static FILE *cfp = NULL;
 iloc_t** iloc_list;
 int iloc_list_length;
 char* main_label = NULL;
+int main_scope;
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
@@ -324,6 +325,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = call_sequence(tree);
             break;
         case AST_FUNCAO_MAIN:
+            main_scope = tree->value->var_scope;
             ret = append_iloc_list(cc, tree->childnodes);
 
             // reserva espaço para as variáveis locais
@@ -406,28 +408,11 @@ iloc_t* call_sequence(comp_tree_t* tree){
         param_tree = param_tree->next;
         int store_type = ILOC_STOREAI;
         sprintf(param_address+12*i, "%i", top);
-        if(param_tree->value->type == AST_LITERAL){
-            if(param_tree->value->value_type == decl_variable(POA_LIT_INT) || param_tree->value->value_type == decl_variable(POA_LIT_FLOAT))
-                store_param = append_iloc(store_param,
-                  create_iloc(ILOC_LOADI, param_tree->value->symbol->lexeme, NULL, reg));
-            else if(param_tree->value->value_type == decl_variable(POA_LIT_BOOL))
-                store_param = append_iloc(store_param,
-                  create_iloc(ILOC_LOADI, string_to_bool(param_tree->value->symbol->lexeme), NULL, reg));
-            else if(param_tree->value->value_type == decl_variable(POA_LIT_CHAR)){
-                store_param = append_iloc(store_param,
-                  create_iloc(ILOC_CLOAD, param_tree->value->symbol->lexeme, NULL, reg));
-                store_type = ILOC_CSTORE;
-            }
-            else
-                //TODO para string
-                printf("TO DO string\n");
-        }
-        else if(param_tree->value->type == AST_IDENTIFICADOR){
-            store_param = append_iloc(store_param,
-                            create_iloc(ILOC_LOADAI, "rarp", get_char_address(param_tree), reg));
-        }
+
+        store_param = append_iloc(store_param, code_generator(param_tree));
         store_param = append_iloc(store_param,
           create_iloc(store_type, reg, "rsp", param_address+12*i));
+
         top += 4;//size_of(param_tree->value->value_type);
     }
 
@@ -859,7 +844,10 @@ void free_iloc_list(){
 
 char* get_char_address(comp_tree_t *tree){
     char* address = malloc(20*sizeof(char));
-    sprintf(address, "%i", tree->value->address + RA_SIZE);
+    if(tree->value->var_scope != main_scope)
+        sprintf(address, "%i", tree->value->address + RA_SIZE);
+    else
+        sprintf(address, "%i", tree->value->address);
     add_to_tmp_list(address);
     return address;
 }
@@ -951,4 +939,8 @@ void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc){
         add_rem_false(tree, &cbr->op3);
         *iloc = append_iloc(*iloc, cbr);
     }
+}
+
+void set_main_scope(int scope){
+    main_scope = scope;
 }

@@ -102,6 +102,7 @@ void print_iloc(iloc_t* iloc);
 void print_iloc_list(iloc_t* iloc);
 iloc_t* invert_iloc_list(iloc_t* last);
 void set_attribute_address(comp_tree_t* tree, symbol_t* attribute);
+void set_main_scope(int scope);
 
 
 

@@ -97,4 +97,6 @@ int get_func_type(comp_tree_t* tree);
 void set_unary_node_value_type(comp_tree_t* node, int value_type);
 void set_binary_node_value_type(comp_tree_t* node, int op_type, int op_token);
 void check_pipe(comp_tree_t* pipes);
+void set_function_scope(comp_tree_t* tree);
+int get_current_scope();
 #endif //COMPILADOR_CC_SEMANTIC_H
