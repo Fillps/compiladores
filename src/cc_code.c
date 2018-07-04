@@ -45,6 +45,7 @@ iloc_t* call_sequence(comp_tree_t* tree);
 iloc_t* call_epilogue(comp_tree_t* tree);
 iloc_t* return_sequence(comp_tree_t* tree);
 iloc_t* update_reg(char* reg, int op, int value);
+int get_number_of_instructions(iloc_t* iloc);
 
 void code_init(const char * filename){
     //verificar se code_init já foi chamada
@@ -87,24 +88,24 @@ void build_iloc_code(comp_tree_t* tree){
 
     iloc_t* init_rarp = create_iloc(ILOC_LOADI,"1024", NULL, "rarp");
     iloc_t* init_rsp = create_iloc(ILOC_LOADI,"1024", NULL, "rsp");
-    sprintf(rbss_address, "%i", iloc_list_length);  // Converte o número de instruções para string
-    //TODO verificar por que o tamanho da lista de instruções é maior do que o número de instruções
-    iloc_t* init_rbss = create_iloc(ILOC_LOADI,rbss_address, NULL, "rbss");
+    iloc_t* init_rbss = create_iloc(ILOC_LOADI, rbss_address, NULL, "rbss");
     iloc_t* jmp_main;
 
     if(main_label == NULL){
         main_label = "5";
-        printf("WARNING: main() function not found!\n");
+        fprintf(stderr, "WARNING: main() function not found!\n");
     }
     jmp_main = create_iloc(ILOC_JUMPI, NULL, NULL, main_label);
 
-    print_iloc_list(
-        invert_iloc_list(
-            append_iloc(
+    code =  append_iloc(
                 init_rarp, append_iloc(
                     init_rsp, append_iloc(
                         init_rbss, append_iloc(
-                            jmp_main, code))))));
+                            jmp_main, code))));
+
+    sprintf(rbss_address, "%i", get_number_of_instructions(code) + 1);  // Converte o número de instruções para string
+
+    print_iloc_list(invert_iloc_list(code));
 
     free_iloc_list();
 }
@@ -267,12 +268,12 @@ iloc_t* code_generator(comp_tree_t *tree){
             patchup_true(tree->first, aux1->label);
             if (!cc[2]) // Não existe próximo comando
                 cc[2] = create_iloc(ILOC_NOP, NULL, NULL, NULL);
-            aux2 = get_last_iloc(cc[2]);
-            aux2->label = create_label();
-            patchup_false(tree->first, aux2->label);
+            aux3 = get_last_iloc(cc[2]);
+            aux3->label = create_label();
+            patchup_false(tree->first, aux3->label);
 
-            ret = append_iloc(append_iloc(
-                    cc[0], cc[1]), cc[2]);
+            ret = append_iloc(append_iloc(append_iloc(
+                    cc[0], cc[1]), cc[2]), aux2);
             break;
         case AST_WHILE_DO:
             // troca o primeiro e segundo nodo para fica igual ao DO_WHILE: cc[0] = codigo cc[1] = exp
@@ -338,32 +339,37 @@ iloc_t* code_generator(comp_tree_t *tree){
             iloc_t* reserve = create_iloc(ILOC_ADDI, "rsp", size_vars, "rsp");
             ret = append_iloc(reserve, ret);
 
-            ret = invert_iloc_list(ret);
+            // como a ultima instrucao do da funcao main vai se um return,
+            // sendo que o iloc do return_sequence sempre possui 6 ilocs,
+            // substitui esses 6 ilocs por um halt
+            ret = ret->prev->prev->prev->prev->prev; //volta 5 ilocs
+            ret->type = ILOC_HALT; //substitui por um halt
+            ret->op1 = NULL;
+            ret->op2 = NULL;
+            ret->op3 = NULL;
+
             // Se não tem label, cria
             if(value->label[tree->value->var_scope] == NULL){
-                ret->label = create_label();
+                get_last_iloc(ret)->label = create_label();
                 value->label[tree->value->var_scope] = ret->label;
             }else
-                ret->label = value->label[tree->value->var_scope];
+                get_last_iloc(ret)->label = value->label[tree->value->var_scope];
 
-            main_label = ret->label;
-            ret = invert_iloc_list(ret);
+            main_label = get_last_iloc(ret)->label;
             break;
         case AST_FUNCAO:
             ret = append_iloc_list(cc, tree->childnodes);
             // Constrói o epílogo da chamada da função
             ret = append_iloc(call_epilogue(tree), ret);
-            // Inverte o iloc para adicionar a label
-            ret = invert_iloc_list(ret);
+
             id_value_t* func_value = tree->value->symbol->value;
             // Se não tem label, cria
             if(func_value->label[tree->value->var_scope] == NULL){
-                ret->label = create_label();
+                get_last_iloc(ret)->label = create_label();
                 func_value->label[tree->value->var_scope] = ret->label;
             }else
-                ret->label = func_value->label[tree->value->var_scope];
+                get_last_iloc(ret)->label = func_value->label[tree->value->var_scope];
 
-            ret = invert_iloc_list(ret);
             break;
         case AST_RETURN:
             ret = append_iloc_list(cc, tree->childnodes);
@@ -458,7 +464,7 @@ iloc_t* call_epilogue(comp_tree_t* tree){
 
 iloc_t* return_sequence(comp_tree_t* tree){
     iloc_t* return_code;
-    char* reg = create_reg();;
+    char* reg = create_reg();
     iloc_t *aux1, *aux2, *aux3, *aux4, *aux5, *aux6;
     aux1 = tree->last->value->iloc;
 
@@ -772,6 +778,7 @@ static inline char *__iloc_instructions (int type)
         case ILOC_CMP_GE: return "cmp_GE";
         case ILOC_CMP_GT: return "cmp_GT";
         case ILOC_CMP_NE: return "cmp_NE";
+        case ILOC_HALT: return "halt";
 
         default:
             fprintf (stderr, "%s: type provided is invalid here\n", __FUNCTION__);
@@ -930,4 +937,14 @@ void short_circuit_variable(comp_tree_t *tree, iloc_t **iloc){
 
 void set_main_scope(int scope){
     main_scope = scope;
+}
+
+int get_number_of_instructions(iloc_t* iloc){
+    iloc_t* tmp = iloc;
+    int i = 1;
+    while (tmp->prev){
+        tmp = tmp->prev;
+        i++;
+    }
+    return i;
 }
