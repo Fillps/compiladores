@@ -252,7 +252,7 @@ const_opc:
 
 /* Blocos de Comando */
 corpo:
-    { start_scope(); } '{' bloco_comando '}' { end_scope(); $$ = $3; };
+    {  } '{' bloco_comando '}' { $$ = $3; };
 
 bloco_comando:
     %empty                          { $$ = NULL; }

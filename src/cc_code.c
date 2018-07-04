@@ -326,7 +326,6 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = call_sequence(tree);
             break;
         case AST_FUNCAO_MAIN:
-            main_scope = tree->value->var_scope;
             ret = append_iloc_list(cc, tree->childnodes);
 
             // reserva espaço para as variáveis locais
@@ -340,9 +339,9 @@ iloc_t* code_generator(comp_tree_t *tree){
             ret = append_iloc(reserve, ret);
 
             // como a ultima instrucao do da funcao main vai se um return,
-            // sendo que o iloc do return_sequence sempre possui 6 ilocs,
+            // sendo que o iloc do return_sequence sempre possui 7 ilocs,
             // substitui esses 6 ilocs por um halt
-            ret = ret->prev->prev->prev->prev->prev; //volta 5 ilocs
+            ret = ret->prev->prev->prev->prev->prev->prev; //volta 6 ilocs
             ret->type = ILOC_HALT; //substitui por um halt
             ret->op1 = NULL;
             ret->op2 = NULL;
@@ -838,7 +837,7 @@ void free_iloc_list(){
 
 char* get_char_address(comp_tree_t *tree){
     char* address = malloc(20*sizeof(char));
-    if(tree->value->var_scope != main_scope)
+    if(tree->value->var_scope != main_scope && tree->value->var_scope != GLOBAL_SCOPE)
         sprintf(address, "%i", tree->value->address + RA_SIZE);
     else
         sprintf(address, "%i", tree->value->address);
