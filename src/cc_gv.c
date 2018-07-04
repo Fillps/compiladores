@@ -96,7 +96,7 @@ static inline char *__gv_description_from_type (int tipo)
 }
 
 /**
- * gv_init 
+ * gv_init
  *
  * Esta função deve ser chamada para inicializar o arquivo onde o
  * grafo será registrado. Um nome de arquivo, opcional, pode ser
@@ -120,7 +120,7 @@ void gv_init (const char *filename)
       abort();
     }
   }else{
-    fp = stderr;    
+    fp = stderr;
   }
   fprintf (fp, "digraph G {\n");
 
@@ -151,14 +151,14 @@ void gv_close (void)
  * gv_declare
  *
  * Esta função deve ser chamada para declarar um nó da AST,
- * registrando esse novo nó no arquivo. Ela tem três parâmetros: 
+ * registrando esse novo nó no arquivo. Ela tem três parâmetros:
 
  * 1/ tipo, que deve ser obrigatoriamente um dos valores das
- * constantes declaradas no arquivo iks_ast.h; 
+ * constantes declaradas no arquivo iks_ast.h;
 
  * 2/ pointer, que deve ser um pointeiro para o nó da árvore AST que
  * está sendo declarado servindo a partir de agora como identificador
- * único do nó; e 
+ * único do nó; e
 
  * 3/ name, que deve ser um lexema válido somente se o tipo for um
  * desses três valores: AST_IDENTIFICADOR (o lexema do
@@ -174,8 +174,10 @@ void gv_declare (const int tipo, const void *pointer, char *name)
 
   switch (tipo){
   case AST_FUNCAO:
+  case AST_FUNCAO_MAIN:
   case AST_IDENTIFICADOR:
   case AST_LITERAL:
+  case AST_CHAMADA_DE_FUNCAO:
     if (!name){
       fprintf (stderr, "%s: name should be not NULL\n", __FUNCTION__);
       abort();
@@ -207,7 +209,6 @@ void gv_declare (const int tipo, const void *pointer, char *name)
   case AST_LOGICO_COMP_G:
   case AST_LOGICO_COMP_NEGACAO:
   case AST_VETOR_INDEXADO:
-  case AST_CHAMADA_DE_FUNCAO:
   case AST_SHIFT_LEFT:
   case AST_SHIFT_RIGHT:
   case AST_BREAK:

@@ -38,6 +38,7 @@ typedef struct id_value{
     void* decl_info[SCOPE_SIZE];
     int address[SCOPE_SIZE];
     int size;
+    char* label[SCOPE_SIZE];
 }id_value_t;
 
 typedef struct tmp_value{
@@ -50,6 +51,7 @@ typedef struct function_info{
     int param_type[PARAM_SIZE];
     symbol_t* param_id[PARAM_SIZE];
     int params_length;
+    int local_var_size;
 }function_info_t;
 
 typedef struct class_info{
@@ -66,16 +68,17 @@ symbol_t* insert_symbol(int token, char* lexeme, int lengh);
 
 char* create_reg();
 char* create_label();
+int reset_local_address();
 int get_global_address(int size);
 int get_local_address(int size);
 char* insert_minus_in_str(char* str);
 void add_to_tmp_list(void *item);
-
 void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value);
 
 #include "cc_tree.h"
 int get_variable_type(comp_tree_t* tree);
 
 int size_of(int type);
+char* string_to_bool(char* str);
 
 #endif
