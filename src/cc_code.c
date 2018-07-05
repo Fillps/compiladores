@@ -20,6 +20,7 @@ iloc_t** iloc_list;
 int iloc_list_length;
 char* main_label = NULL;
 int main_scope;
+comp_dict_t* function_labels;
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
@@ -80,6 +81,7 @@ void code_close(){
 #define MAX_ILOC 10000
 
 void build_iloc_code(comp_tree_t* tree){
+    function_labels = dict_new();
     iloc_list = calloc(MAX_ILOC, sizeof(iloc_t*));
     iloc_list_length = 0;
     iloc_t *code;
@@ -108,6 +110,10 @@ void build_iloc_code(comp_tree_t* tree){
     print_iloc_list(invert_iloc_list(code));
 
     free_iloc_list();
+    for (int i = 0; i < function_labels->size; i++)
+        if (function_labels->data[i])
+            dict_remove(function_labels, (function_labels->data[i])->key);
+    dict_free(function_labels);
 }
 
 iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
@@ -427,7 +433,11 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
     // Jump para a funcao
     id_value_t* value = tree->value->symbol->value;
-    value->label[tree->value->var_scope] = create_label();
+    value->label[tree->value->var_scope] = (char*)gdict_get(function_labels, func_info);
+    if(value->label[tree->value->var_scope] == NULL){
+        value->label[tree->value->var_scope] = create_label();
+        dict_put(function_labels, func_info, value->label[tree->value->var_scope]);
+    }
     iloc_t* jmp = create_iloc(ILOC_JUMPI, NULL, NULL, value->label[tree->value->var_scope]);
 
     // carrega o resultado da função
