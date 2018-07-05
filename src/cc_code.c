@@ -433,7 +433,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
     // Jump para a funcao
     id_value_t* value = tree->value->symbol->value;
-    value->label[tree->value->var_scope] = (char*)gdict_get(function_labels, func_info);
+    value->label[tree->value->var_scope] = (char*)dict_get(function_labels, func_info);
     if(value->label[tree->value->var_scope] == NULL){
         value->label[tree->value->var_scope] = create_label();
         dict_put(function_labels, func_info, value->label[tree->value->var_scope]);
