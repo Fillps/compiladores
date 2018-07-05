@@ -423,9 +423,9 @@ iloc_t* call_sequence(comp_tree_t* tree){
     }
 
     //calc do endereço de retorno
-    int address = 2*i + 1 + 1 + 1 + 1 + 1 + 1;
+
     char* callback_address = malloc(20*sizeof(char));
-    sprintf(callback_address, "%i", address);
+
     char* reg_address = create_reg();
     iloc_t* address_calc = create_iloc(ILOC_ADDI, "rpc", callback_address, reg_address);
     // Guarda endereço de retorno
@@ -433,10 +433,10 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
     // Jump para a funcao
     id_value_t* value = tree->value->symbol->value;
-    value->label[tree->value->var_scope] = (char*)dict_get(function_labels, func_info);
+    value->label[tree->value->var_scope] = (char*)dict_get(function_labels, tree->first->value->symbol->lexeme);
     if(value->label[tree->value->var_scope] == NULL){
         value->label[tree->value->var_scope] = create_label();
-        dict_put(function_labels, func_info, value->label[tree->value->var_scope]);
+        dict_put(function_labels, tree->first->value->symbol->lexeme, value->label[tree->value->var_scope]);
     }
     iloc_t* jmp = create_iloc(ILOC_JUMPI, NULL, NULL, value->label[tree->value->var_scope]);
 
@@ -445,6 +445,9 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
     seq = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
               address_calc, seq), store_rsp), store_rarp), store_param), jmp), load_result);
+
+    int address = get_number_of_instructions(seq)-1;
+    sprintf(callback_address, "%i", address);
 
     return seq;
 }
