@@ -154,32 +154,32 @@ void attribute_undeclared_error(symbol_t* class, symbol_t* attribute){
 }
 
 void wrong_type_assignment(symbol_t* var, int correct_type, int wrong_type){
-    switch (wrong_type) {
-        case decl_variable(POA_LIT_STRING):
-            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
-                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
-            exit(IKS_ERROR_STRING_TO_X);
-        case decl_variable(POA_LIT_CHAR):
-            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
-                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
-            exit(IKS_ERROR_CHAR_TO_X);
-        case decl_variable(POA_LIT_INT):
-            if(correct_type == decl_variable(POA_LIT_FLOAT))
-                different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
-            else
-                wrong_type_error(var, __type_description(correct_type), __type_description(wrong_type));
-            break;
-        case decl_variable(POA_LIT_FLOAT):
-            if(correct_type == decl_variable(POA_LIT_INT))
-                different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
-            else
-                wrong_type_error(var, __type_description(correct_type), __type_description(wrong_type));
-            break;
-        default:
-            fprintf (stderr, "IKS_ERROR_WRONG_TYPE(line: %d, id: %s) \'%s\' type is \'%s\', but was given \'%s\'.\n",
-                     var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
-            exit(IKS_ERROR_WRONG_TYPE);
-    }
+//    switch (wrong_type) {
+//        case decl_variable(POA_LIT_STRING):
+//            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
+//                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+//            exit(IKS_ERROR_STRING_TO_X);
+//        case decl_variable(POA_LIT_CHAR):
+//            fprintf (stderr, "IKS_ERROR_CHAR_TO_X(line: %d, id: %s) correct type is \'%s\', but was given \'%s\'.\n",
+//                     var->line, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+//            exit(IKS_ERROR_CHAR_TO_X);
+//        case decl_variable(POA_LIT_INT):
+//            if(correct_type == decl_variable(POA_LIT_FLOAT))
+//                different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+//            else
+//                wrong_type_error(var, __type_description(correct_type), __type_description(wrong_type));
+//            break;
+//        case decl_variable(POA_LIT_FLOAT):
+//            if(correct_type == decl_variable(POA_LIT_INT))
+//                different_type_warning(var, __type_description(correct_type), __type_description(wrong_type));
+//            else
+//                wrong_type_error(var, __type_description(correct_type), __type_description(wrong_type));
+//            break;
+//        default:
+//            fprintf (stderr, "IKS_ERROR_WRONG_TYPE(line: %d, id: %s) \'%s\' type is \'%s\', but was given \'%s\'.\n",
+//                     var->line, var->lexeme, var->lexeme, __type_description(correct_type), __type_description(wrong_type));
+//            exit(IKS_ERROR_WRONG_TYPE);
+//    }
 }
 
 void invalid_exp(comp_tree_t* exp_tree, char* correct_type, int wrong_type, char* token){

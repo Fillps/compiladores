@@ -276,10 +276,6 @@ iloc_t* code_generator(comp_tree_t *tree){
                     cc[0], cc[1]), cc[2]), aux2);
             break;
         case AST_WHILE_DO:
-            // troca o primeiro e segundo nodo para fica igual ao DO_WHILE: cc[0] = codigo cc[1] = exp
-            aux3 = cc[0];
-            cc[0] = cc[1];
-            cc[1] = aux3;
             // adiciona um jump ate a exp
             aux3 = create_iloc(ILOC_JUMPI, NULL, NULL, create_label());
             get_last_iloc(cc[1])->label = aux3->op3;

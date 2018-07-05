@@ -433,7 +433,7 @@ while_exp:
 while:
     while_exp TK_PR_DO corpo    {
                                     if ($3){
-                                        $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $1, $3);
+                                        $$ = createASTBinaryNode(AST_WHILE_DO, NULL, $3, $1);
                                     }
                                     else{
                                         tree_free($1);
