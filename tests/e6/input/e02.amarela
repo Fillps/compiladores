@@ -1,5 +1,5 @@
 /* parameter passing: 49 in the bss address */
-int x;
+
 
 int mult (int z, int w)
 {
@@ -10,7 +10,9 @@ int mult (int z, int w)
 
 int main()
 {
+  int x;
   int y;
   y = 7;
   x = mult(y, y);
+  return 0;
 }

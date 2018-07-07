@@ -1,5 +1,4 @@
-int x;
-int K;
+
 
 int f(int z, int w)
 {
@@ -15,9 +14,12 @@ int mult (int z, int w, int a, int b)
 
 int main()
 {
+  int x;
+  int K;
   int y;
   int z;
   y = 2;
   z = 2;
   K = mult(y*3, y*3, z*2, z*2);
+  return 0;
 }

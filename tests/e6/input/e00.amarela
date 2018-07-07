@@ -1,5 +1,5 @@
 /* 99 in bss address */
-int x;
+
 
 int f()
 {
@@ -8,5 +8,7 @@ int f()
 
 int main()
 {
+  int x;
   x = f();
+  return 0;
 }

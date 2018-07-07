@@ -1,4 +1,3 @@
-int K;
 
 int gis(int a)
 {
@@ -10,5 +9,7 @@ int gis(int a)
 
 int main()
 {
+  int K;
   K = gis(3);
+  return 0;
 }

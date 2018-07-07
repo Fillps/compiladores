@@ -1,5 +1,5 @@
 /* 98 in bss address */
-int y;
+
 
 int f()
 {
@@ -10,5 +10,7 @@ int f()
 
 int main()
 {
+  int y;
   y = f();
+  return 0;
 }

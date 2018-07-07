@@ -1,5 +1,5 @@
 /* recursion:  in the bss address */
-int x;
+
 
 int fatorial (int n)
 {
@@ -11,7 +11,9 @@ int fatorial (int n)
 
 int main()
 {
+  int x;
   int y;
   y = 6;
   x = fatorial(y);
+  return 0;
 }
