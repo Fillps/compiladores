@@ -198,17 +198,6 @@ void create_id(symbol_t* symbol, char* key, char* lexeme, int length)
 
 }
 
-char* create_reg(){
-    static int regNumber = 0;
-    char *regName;
-    regName = (char *)calloc(256, sizeof(char));
-    sprintf(regName, "r%d", regNumber++);
-
-    add_to_tmp_list(regName);
-
-    return regName;
-}
-
 char* create_label(){
     static int labelNumber = 0;
     char *labelName;
