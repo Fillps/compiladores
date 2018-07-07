@@ -334,7 +334,7 @@ iloc_t* code_generator(comp_tree_t *tree){
             id_value_t* value = tree->value->symbol->value;
             function_info_t* func = value->decl_info[0];
 
-            char* size_vars;
+            char* size_vars = malloc(20*sizeof(char));
             sprintf(size_vars, "%d", func->local_var_size);
 
             iloc_t* reserve = create_iloc(ILOC_ADDI, "rsp", size_vars, "rsp");
