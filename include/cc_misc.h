@@ -74,6 +74,7 @@ int get_local_address(int size);
 char* insert_minus_in_str(char* str);
 void add_to_tmp_list(void *item);
 void change_labels(comp_dict_t *dict, char **new_value_ptr, char* old_value);
+void add_to_tmp_list(void *item);
 
 #include "cc_tree.h"
 int get_variable_type(comp_tree_t* tree);

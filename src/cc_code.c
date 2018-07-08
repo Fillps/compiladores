@@ -359,6 +359,7 @@ iloc_t* code_generator(comp_tree_t *tree){
 
             char* size_vars = malloc(20*sizeof(char));
             sprintf(size_vars, "%d", func->local_var_size);
+            add_to_tmp_list(size_vars);
 
             iloc_t* reserve = create_iloc(ILOC_ADDI, "rsp", size_vars, "rsp");
             reserve->comment = "MAIN_FUNC";
@@ -440,6 +441,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
     comp_tree_t* param_tree = tree->first;
     int top = 16;
     char* param_address = malloc(240*sizeof(char));
+    add_to_tmp_list(param_address);
     for(i = 0; i < tree->childnodes-1; i++){
         param_tree = param_tree->next;
         int store_type = ILOC_STOREAI;
@@ -457,6 +459,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
     iloc_t *store_registers = NULL, *restore_registers = NULL;;
     for(i = 0; i < reg_list_length; i++){
         char* endr = malloc(20*sizeof(char));
+        add_to_tmp_list(endr);
         sprintf(endr, "%i", RA_SIZE + var_scope_size + i*4);
         store_registers = append_iloc(store_registers, create_iloc(ILOC_STOREAI, reg_list[i], "rsp", endr));
         restore_registers = append_iloc(restore_registers, create_iloc(ILOC_LOADAI, "rsp", endr, reg_list[i]));
@@ -467,12 +470,10 @@ iloc_t* call_sequence(comp_tree_t* tree){
     }
 
     //calc do endereço de retorno
-
-    char* callback_address = malloc(20*sizeof(char));
-
     char* reg_address = create_reg();
     iloc_t* address_calc = create_iloc(ILOC_ADDI, "rpc", "5", reg_address);
     address_calc->comment = "FUNC_CALL";
+
     // Guarda endereço de retorno
     seq = create_iloc(ILOC_STOREAI, reg_address, "rsp", "0");
 
@@ -512,6 +513,7 @@ iloc_t* call_epilogue(comp_tree_t* tree){
     if (!reg_number){
         reg_number = malloc(sizeof(int));
         *reg_number = reg_list_length;
+        add_to_tmp_list(reg_number);
     }
 
     // Atualiza o rsp
@@ -561,6 +563,8 @@ iloc_t* update_reg(char* reg, int op, int value){
         ret = create_iloc(ILOC_ADDI, reg, val, reg);
     else
         ret = create_iloc(ILOC_SUBI, reg, val, reg);
+
+    add_to_tmp_list(val);
 
     return ret;
 }

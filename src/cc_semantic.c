@@ -445,6 +445,7 @@ void end_function(){
 void create_params(){
     function_info = calloc(1, sizeof(function_info_t));
     function_info->params_length = 0;
+    add_to_tmp_list(function_info);
 }
 
 void add_param(symbol_t* symbol, int type){
