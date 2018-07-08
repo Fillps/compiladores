@@ -22,8 +22,9 @@ char* main_label = NULL;
 int main_scope;
 comp_dict_t* function_labels;
 char** reg_list;
-int regNumber;
+int reg_list_length;
 int var_scope_size;
+comp_dict_t* function_registers_dict;
 
 iloc_t** get_children_iloc_list(comp_tree_t* tree);
 char* get_especial_reg(comp_tree_t* tree);
@@ -86,8 +87,9 @@ void code_close(){
 
 void build_iloc_code(comp_tree_t* tree){
     function_labels = dict_new();
+    function_registers_dict = dict_new();
     reg_list = calloc(DICT_SIZE, sizeof(char));
-    regNumber = 0;
+    reg_list_length = 0;
     iloc_list = calloc(MAX_ILOC, sizeof(iloc_t*));
     iloc_list_length = 0;
     iloc_t *code;
@@ -120,8 +122,10 @@ void build_iloc_code(comp_tree_t* tree){
         if (function_labels->data[i])
             dict_remove(function_labels, (function_labels->data[i])->key);
     dict_free(function_labels);
-    for (int i = 0; i < regNumber; i++)
-        free(reg_list[i]);
+    for (int i = 0; i < function_registers_dict->size; i++)
+        if (function_registers_dict->data[i])
+            dict_remove(function_registers_dict, (function_registers_dict->data[i])->key);
+    dict_free(function_registers_dict);
     free(reg_list);
 
 }
@@ -146,11 +150,15 @@ iloc_t* create_iloc(int type, char *op1, char *op2, char *op3){
 iloc_t* code_generator(comp_tree_t *tree){
     if(!tree)
         return 0;
-    if (tree->value->type == AST_FUNCAO_MAIN || tree->value->type == AST_FUNCAO)
-        var_scope_size = ((function_info_t*)((id_value_t*)tree->value->symbol->value)->decl_info[GLOBAL_SCOPE])->local_var_size*4;
+    if (tree->value->type == AST_FUNCAO_MAIN || tree->value->type == AST_FUNCAO){
+        id_value_t* id_value = (id_value_t*)tree->value->symbol->value;
+        var_scope_size = ((function_info_t*)id_value->decl_info[GLOBAL_SCOPE])->local_var_size*INT_SIZE;
+        reg_list_length = 0;
+    }
 
     iloc_t** cc = get_children_iloc_list(tree);
     iloc_t *ret = NULL, *aux1 = NULL, *aux2 = NULL, *aux3 = NULL;
+    int func_reg_list_length;
 
     switch(tree->value->type){
         case AST_LITERAL:
@@ -375,10 +383,12 @@ iloc_t* code_generator(comp_tree_t *tree){
             main_label = get_last_iloc(ret)->label;
             break;
         case AST_FUNCAO:
+            func_reg_list_length = reg_list_length;
+            dict_put(function_registers_dict, tree->value->symbol->lexeme, &func_reg_list_length);
+
             ret = append_iloc_list(cc, tree->childnodes);
             // Constrói o epílogo da chamada da função
             get_last_iloc(ret)->comment = "FUNC";
-            ret = append_iloc(call_epilogue(tree), ret);
 
             id_value_t* func_value = tree->value->symbol->value;
             // Se não tem label, cria
@@ -445,7 +455,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
 
     // salva e restaura os registradores
     iloc_t *store_registers = NULL, *restore_registers = NULL;;
-    for(i = 0; i < regNumber; i++){
+    for(i = 0; i < reg_list_length; i++){
         char* endr = malloc(20*sizeof(char));
         sprintf(endr, "%i", RA_SIZE + var_scope_size + i*4);
         store_registers = append_iloc(store_registers, create_iloc(ILOC_STOREAI, reg_list[i], "rsp", endr));
@@ -461,7 +471,7 @@ iloc_t* call_sequence(comp_tree_t* tree){
     char* callback_address = malloc(20*sizeof(char));
 
     char* reg_address = create_reg();
-    iloc_t* address_calc = create_iloc(ILOC_ADDI, "rpc", "2", reg_address);
+    iloc_t* address_calc = create_iloc(ILOC_ADDI, "rpc", "5", reg_address);
     address_calc->comment = "FUNC_CALL";
     // Guarda endereço de retorno
     seq = create_iloc(ILOC_STOREAI, reg_address, "rsp", "0");
@@ -479,8 +489,9 @@ iloc_t* call_sequence(comp_tree_t* tree){
     iloc_t* load_result = create_iloc(ILOC_LOADAI, "rsp", "12", create_reg());
     load_result->comment = "LOAD_RESULT";
 
-    seq = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
-              store_registers, seq), store_rsp), store_rarp), store_param), address_calc), jmp), restore_registers), load_result);
+    seq = append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(append_iloc(
+              store_registers, store_rsp), store_rarp), store_param), address_calc),
+              seq), call_epilogue(tree->first)), jmp), restore_registers), load_result);
 
     return seq;
 }
@@ -496,8 +507,15 @@ iloc_t* call_epilogue(comp_tree_t* tree){
     id_value_t* value = tree->value->symbol->value;
     function_info_t* func_info = value->decl_info[GLOBAL_SCOPE];
 
+    //reg number
+    int *reg_number = (int*)dict_get(function_registers_dict, tree->value->symbol->lexeme);
+    if (!reg_number){
+        reg_number = malloc(sizeof(int));
+        *reg_number = reg_list_length;
+    }
+
     // Atualiza o rsp
-    iloc_t* update_rsp = update_reg("rsp", REG_INC, func_info->local_var_size + RA_SIZE + regNumber);
+    iloc_t* update_rsp = update_reg("rsp", REG_INC, func_info->local_var_size*INT_SIZE + RA_SIZE + *reg_number*INT_SIZE);
 
     call = append_iloc(call, update_rsp);
 
@@ -556,6 +574,7 @@ iloc_t * iloc_dup(iloc_t* iloc){
 
     while (iloc){
         dup_aux = create_iloc(iloc->type, iloc->op1, iloc->op2, iloc->op3);
+        dup_aux->comment = iloc->comment;
         if (iloc->type == ILOC_JUMPI)
             change_labels(dict, &dup_aux->op3, iloc->op3);
         else if (iloc->type == ILOC_CBR){
@@ -993,12 +1012,7 @@ int get_number_of_instructions(iloc_t* iloc){
 }
 
 char* create_reg(){
-
-    char *regName;
-    regName = (char *)calloc(256, sizeof(char));
-    sprintf(regName, "r%d", regNumber);
-
-    reg_list[regNumber++] = regName;
-
-    return regName;
+    char* reg = create_register();
+    reg_list[reg_list_length++] = reg;
+    return reg;
 }

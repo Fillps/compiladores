@@ -66,6 +66,7 @@ void main_init (int argc, char **argv);
 void main_finalize (void);
 symbol_t* insert_symbol(int token, char* lexeme, int lengh);
 
+char* create_register();
 char* create_label();
 int reset_local_address();
 int get_global_address(int size);
